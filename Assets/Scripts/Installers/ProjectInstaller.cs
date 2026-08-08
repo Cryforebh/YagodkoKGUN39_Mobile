@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using UniRx;
 using UnityEngine;
 using Zenject;
 
@@ -17,6 +18,10 @@ public class ProjectInstaller : ScriptableObjectInstaller
         //Container.Bind<ISceneLoader>()
         //    .To<SceneLoader>()
         //    .AsSingle();
-        Container.Bind<ISceneLoader>().To<SceneLoader>().FromInstance(_sceneLoader).AsSingle();
+        Container.Bind<ISceneLoader>().To<SceneLoader>()
+            .FromInstance(_sceneLoader)
+            .AsSingle();
+        Container.BindInterfacesAndSelfTo<MessageBroker>()
+            .AsSingle();
     }
 }

@@ -1,0 +1,113 @@
+using Cysharp.Threading.Tasks;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using UniRx;
+using UnityEngine;
+using Zenject;
+
+public class PlayerPresenter : MonoBehaviour
+{
+    [SerializeField] private StickController _stickController;
+    [SerializeField] private PlayerMovement _playerMovement;
+    [SerializeField] private CameraMovement _cameraMovement;
+
+    [Inject] private PlatformProgress _platformProgress;
+    [Inject] private PlayerEvents _playerEvents;
+
+    private readonly CompositeDisposable _disposables = new();
+
+    public float PlayerOffsetY => transform.localScale.y / 14f;
+    public float PlayerOffsetX => transform.localScale.x / 2f;
+
+    private void Awake()
+    {
+        _stickController.StickReady
+            .Subscribe(_ => CheckLandingAsync().Forget())
+            .AddTo(_disposables);
+    }
+
+    private void Start()
+    {
+        InitializePlayer();
+    }
+
+    private void InitializePlayer()
+    {
+        PlatformView currentPlatform = _platformProgress.CurrentPlatform;
+
+        Debug.Log($"Player spawn: {currentPlatform.GetLandingPosition(PlayerOffsetY)}");
+        Debug.Log($"Stick spawn: {currentPlatform.StickSpawnPosition}");
+
+        transform.position = currentPlatform.GetLandingPosition(PlayerOffsetY);
+
+        _stickController.ResetStick(
+            currentPlatform.StickSpawnPosition);
+    }
+
+    private async UniTask CheckLandingAsync()
+    {
+        if (!_platformProgress.HasNextPlatform)
+            return;
+
+        Vector2 stickEnd = _stickController.GetStickEndPosition();
+
+        PlatformView nextPlatform = _platformProgress.NextPlatform;
+
+        bool landed =
+            stickEnd.x >= nextPlatform.LeftEdge &&
+            stickEnd.x <= nextPlatform.RightEdge;
+
+        if (!landed)
+        {
+            Debug.Log("ПРОМАХ! Игрок падает.");
+            _playerEvents.RaisePlayerFell();
+            await MovePlayerToFall();
+            return;
+        }
+
+        Debug.Log("УСПЕХ! Стик попал на следующую платформу.");
+
+        await MovePlayerToPlatform(nextPlatform);
+    }
+
+    private async UniTask MovePlayerToPlatform(PlatformView platform)
+    {
+        Vector3 targetPosition = platform.GetLandingPosition(PlayerOffsetY);
+
+        await _playerMovement.MoveTo(targetPosition);
+
+        _platformProgress.MoveToNextPlatform();
+
+        await _cameraMovement.MoveToPlayer(transform);
+
+        _stickController.ResetStick(platform.StickSpawnPosition);
+
+        _playerEvents.RaiseReachedPlatform();
+
+        Debug.Log("Игрок перешел на следующую платформу.");
+    }
+
+    private async UniTask MovePlayerToFall()
+    {
+        Vector3 stickEnd = _stickController.GetStickEndPosition();
+
+        Vector3 fallStartPosition = new Vector3(
+            stickEnd.x,
+            transform.position.y,
+            transform.position.z);
+
+        await _playerMovement.MoveTo(fallStartPosition);
+
+        await UniTask.WhenAll(
+            _stickController.LowerAsync(),
+            _playerMovement.FallAsync(fallDistance: 10f)
+            );
+    }
+
+
+    private void OnDestroy()
+    {
+        _disposables.Dispose();
+    }
+}

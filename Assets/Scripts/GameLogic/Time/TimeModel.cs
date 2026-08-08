@@ -26,10 +26,7 @@ public class TimeModel : ITimeModel
                 _time.Value++;
             }
         }
-        catch (OperationCanceledException)
-        {
-            // Таймер был остановлен
-        }
+        catch (OperationCanceledException){}
     }
 
     public void Dispose()

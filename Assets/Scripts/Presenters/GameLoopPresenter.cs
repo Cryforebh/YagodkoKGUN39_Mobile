@@ -1,18 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 public class GameLoopPresenter : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    // TEST
+    [Inject] private IBonusModel _bonusModel;
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        
+        _bonusModel.Add(Bonuses.Star);
+        _bonusModel.Add(Bonuses.Star);
+        _bonusModel.Add(Bonuses.Hearth);
     }
 }

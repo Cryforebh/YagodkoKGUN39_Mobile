@@ -1,0 +1,189 @@
+using Cysharp.Threading.Tasks;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using UniRx;
+using UnityEngine;
+
+public class StickController : MonoBehaviour
+{
+    [SerializeField] private Transform _stickPivot;
+    [SerializeField] private Transform _stick;
+
+    [SerializeField] private float _growSpeed = 5f;
+    [SerializeField] private float _rotationSpeed = 300f;
+    [SerializeField] private float _maxLength = 10f;
+
+    private bool _isGrowing;
+    private bool _isRotating;
+    private bool _canGrow;
+
+    private Vector3 _defaultScale;
+    private Vector3 _defaultPosition;
+
+    private CancellationToken _cancellationToken;
+
+    private readonly Subject<Unit> _stickReady = new();
+
+    public IObservable<Unit> StickReady => _stickReady;
+
+    private void Awake()
+    {
+        _cancellationToken = this.GetCancellationTokenOnDestroy();
+
+        _defaultScale = _stick.localScale;
+        _defaultPosition = _stick.localPosition;
+
+        ResetStick(_stickPivot.position);
+    }
+
+    private void Update()
+    {
+        if (_isGrowing)
+        {
+            GrowStick();
+        }
+
+        if (_isRotating)
+        {
+            RotateStick();
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            StartGrowing();
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            StopGrowing();
+        }
+    }
+
+    private void StartGrowing()
+    {
+        if (!_canGrow)
+            return;
+
+        _isGrowing = true;
+    }
+
+    private void StopGrowing()
+    {
+        if (!_isGrowing)
+            return;
+
+        _isGrowing = false;
+        _canGrow = false;
+        _isRotating = true;
+    }
+
+    private void GrowStick()
+    {
+        float previousLength = _stick.localScale.y;
+
+        float newLength = previousLength + _growSpeed * Time.deltaTime;
+        newLength = Mathf.Min(newLength, _maxLength);
+
+        float lengthDifference = newLength - previousLength;
+
+        Vector3 scale = _stick.localScale;
+        scale.y = newLength;
+
+        _stick.localScale = scale;
+
+        _stick.localPosition += Vector3.up * (lengthDifference / 2f);
+    }
+
+    private void RotateStick()
+    {
+        float angle = _stickPivot.localEulerAngles.z;
+
+        if (angle > 180f)
+            angle -= 360f;
+
+        angle -= _rotationSpeed * Time.deltaTime;
+
+        if (angle <= -90f)
+        {
+            angle = -90f;
+            _isRotating = false;
+
+            _stickReady.OnNext(Unit.Default);
+        }
+
+        _stickPivot.localRotation = Quaternion.Euler(
+            0f,
+            0f,
+            angle);
+    }
+
+    public async UniTask LowerAsync()
+    {
+        float targetAngle = -180f;
+
+        while (true)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
+
+            float angle = _stickPivot.localEulerAngles.z;
+
+            if (angle > 180f)
+                angle -= 360f;
+
+            angle = Mathf.MoveTowards(
+                angle,
+                targetAngle,
+                _rotationSpeed * Time.deltaTime);
+
+            _stickPivot.localRotation = Quaternion.Euler(
+                0f,
+                0f,
+                angle);
+
+            if (Mathf.Approximately(angle, targetAngle))
+                break;
+
+            await UniTask.Yield(
+                cancellationToken: _cancellationToken);
+        }
+    }
+
+    public void ResetStick(Vector3 position)
+    {
+        _isGrowing = false;
+        _isRotating = false;
+        _canGrow = true;
+
+        _stick.localScale = _defaultScale;
+        _stick.localPosition = _defaultPosition;
+
+        _stickPivot.position = position;
+        _stickPivot.localRotation = Quaternion.identity;
+    }
+
+    public Vector2 GetStickEndPosition()
+    {
+        return _stick.TransformPoint(
+            new Vector3(0f, 0.5f, 0f)
+        );
+    }
+
+    private void OnDestroy()
+    {
+        _stickReady.Dispose();
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (_stick == null)
+            return;
+
+        Vector2 stickEnd = _stick.TransformPoint(
+            new Vector3(0f, 0.5f, 0f)
+        );
+
+        Gizmos.DrawSphere(stickEnd, 0.1f);
+    }
+}
