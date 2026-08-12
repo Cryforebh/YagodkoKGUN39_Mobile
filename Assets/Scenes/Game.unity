@@ -422,7 +422,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6037736, g: 0.34532195, b: 0.093983635, a: 1}
+  m_Color: {r: 0.18867922, g: 0.18867922, b: 0.18867922, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -675,6 +675,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f032d4c064dbce6419e8a886d355e604, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _starPrefab: {fileID: 968929044945539801, guid: 45879f1cd0965d9448493ade197253e4,
+    type: 3}
+  _hearthPrefab: {fileID: 4044270229144955968, guid: 9427526c75d54154e9e15f3b11e66e21,
+    type: 3}
+  _spawnChance: 1
+  _bonusCount: 1
+  _bonusHeight: 0.35
+  _bonusEdgeOffset: 0.5
+  _minGapWidth: 2
 --- !u!4 &340952403 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 34695078128881067, guid: 3b9909137bb3b6841b96c7e3da79aed5,
@@ -1485,7 +1494,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6037736, g: 0.34532195, b: 0.093983635, a: 1}
+  m_Color: {r: 0.18867922, g: 0.18867922, b: 0.18867922, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2319,7 +2328,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.57123387, b: 0.15566039, a: 1}
+  m_Color: {r: 0.3301887, g: 0.3301887, b: 0.3301887, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2375,7 +2384,7 @@ Transform:
   m_GameObject: {fileID: 1451488817}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.1316, y: -3.1554, z: 0}
+  m_LocalPosition: {x: -1.1316, y: -3.497, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3249,7 +3258,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.57123387, b: 0.15566039, a: 1}
+  m_Color: {r: 0.3301887, g: 0.3301887, b: 0.3301887, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3305,7 +3314,7 @@ PrefabInstance:
     - target: {fileID: 3855823535585934290, guid: 66e5261a4caf3744394a4a100702d80a,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.943
+      value: -3.2846
       objectReference: {fileID: 0}
     - target: {fileID: 3855823535585934290, guid: 66e5261a4caf3744394a4a100702d80a,
         type: 3}
@@ -3367,13 +3376,17 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+    - target: {fileID: 7207126091870954768, guid: 66e5261a4caf3744394a4a100702d80a,
+        type: 3}
+      propertyPath: m_BodyType
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7850483675684826317, guid: 66e5261a4caf3744394a4a100702d80a,
         type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 7207126091870954768, guid: 66e5261a4caf3744394a4a100702d80a, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

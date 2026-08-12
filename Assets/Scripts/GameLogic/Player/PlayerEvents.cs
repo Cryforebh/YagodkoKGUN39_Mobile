@@ -9,8 +9,6 @@ public class PlayerEvents
     private readonly Subject<Unit> _reachedPlatform = new();
     private readonly Subject<Unit> _playerFell = new();
 
-    public IReadOnlyReactiveProperty<bool> Test { get; }
-
     public IObservable<Unit> ReachedPlatform => _reachedPlatform;
     public IObservable<Unit> PlayerFell => _playerFell;
 

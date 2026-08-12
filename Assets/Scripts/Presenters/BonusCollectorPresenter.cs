@@ -6,6 +6,7 @@ using Zenject;
 
 public class BonusCollectorPresenter : MonoBehaviour
 {
+    [Inject] private PlayerEvents _playerEvents;
     [Inject] private IBonusModel _bonusModel;
     [Inject] private IMessageBroker _messageBroker;
 
@@ -16,6 +17,10 @@ public class BonusCollectorPresenter : MonoBehaviour
         _messageBroker
             .Receive<BonusSpawnedMessage>()
             .Subscribe(OnBonusSpawned)
+            .AddTo(_disposables);
+
+        _playerEvents.PlayerFell
+            .Subscribe(_ => ClearCollectedBonuses())
             .AddTo(_disposables);
     }
 
@@ -36,6 +41,12 @@ public class BonusCollectorPresenter : MonoBehaviour
         bonus.Collected -= OnBonusCollected;
 
         Destroy(bonus.gameObject);
+    }
+
+    private void ClearCollectedBonuses()
+    {
+        //_bonusModel.Remove(bonus.BonusType); Вот это нужно реализовать вместо Clear, ведь нужно удалять бонус который был собран при неудачной попытке, а не все бонусы собранные за уровень.
+        _bonusModel.Clear();
     }
 
     private void OnDestroy()

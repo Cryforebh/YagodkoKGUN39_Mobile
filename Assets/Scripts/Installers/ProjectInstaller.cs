@@ -15,13 +15,13 @@ public class ProjectInstaller : ScriptableObjectInstaller
 
     public override void InstallBindings()
     {
-        //Container.Bind<ISceneLoader>()
-        //    .To<SceneLoader>()
-        //    .AsSingle();
         Container.Bind<ISceneLoader>().To<SceneLoader>()
             .FromInstance(_sceneLoader)
             .AsSingle();
         Container.BindInterfacesAndSelfTo<MessageBroker>()
+            .AsSingle();
+        Container.Bind<IBonusStorage>()
+            .To<BonusStorage>()
             .AsSingle();
     }
 }

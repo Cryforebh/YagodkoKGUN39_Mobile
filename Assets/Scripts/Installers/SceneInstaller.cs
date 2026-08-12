@@ -17,5 +17,7 @@ public class SceneInstaller : MonoInstaller
             .AsSingle();
         Container.Bind<PlayerEvents>()
             .AsSingle();
+        Container.Bind<BonusFactory>()
+            .AsSingle();
     }
 }

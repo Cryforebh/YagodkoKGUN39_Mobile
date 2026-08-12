@@ -18,7 +18,6 @@ public class PlayerPresenter : MonoBehaviour
     private readonly CompositeDisposable _disposables = new();
 
     public float PlayerOffsetY => transform.localScale.y / 14f;
-    public float PlayerOffsetX => transform.localScale.x / 2f;
 
     private void Awake()
     {

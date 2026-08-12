@@ -1,18 +1,31 @@
 using System.Collections;
 using System.Collections.Generic;
+using UniRx;
 using UnityEngine;
 
-public class BonusFactory : MonoBehaviour
+public class BonusFactory
 {
-    // Start is called before the first frame update
-    void Start()
+    private readonly IMessageBroker _messageBroker;
+
+    public BonusFactory(IMessageBroker messageBroker)
     {
-        
+        _messageBroker = messageBroker;
     }
 
-    // Update is called once per frame
-    void Update()
+    public BonusView Create(
+        BonusView prefab,
+        Vector3 position,
+        Transform parent = null)
     {
-        
+        BonusView bonus = Object.Instantiate(
+            prefab,
+            position,
+            Quaternion.identity,
+            parent);
+
+        _messageBroker.Publish(
+            new BonusSpawnedMessage(bonus));
+
+        return bonus;
     }
 }

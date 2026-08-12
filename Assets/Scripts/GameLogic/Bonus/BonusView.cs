@@ -13,9 +13,10 @@ public class BonusView : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag("Player"))
+        if (other.tag != "Player")
             return;
 
+        Debug.Log("Бонус соприкаснулся с Player!");
         Collected?.Invoke(this);
     }
 }
