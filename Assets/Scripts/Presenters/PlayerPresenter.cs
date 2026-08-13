@@ -1,7 +1,4 @@
 using Cysharp.Threading.Tasks;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
 using UniRx;
 using UnityEngine;
 using Zenject;
@@ -12,7 +9,9 @@ public class PlayerPresenter : MonoBehaviour
     [SerializeField] private PlayerMovement _playerMovement;
     [SerializeField] private CameraMovement _cameraMovement;
 
+    [Inject] private PlatformGenerator _platformGenerator;
     [Inject] private PlatformProgress _platformProgress;
+    [Inject] private PlatformAppearance _platformAppearance;
     [Inject] private PlayerEvents _playerEvents;
 
     private readonly CompositeDisposable _disposables = new();
@@ -78,9 +77,15 @@ public class PlayerPresenter : MonoBehaviour
 
         _platformProgress.MoveToNextPlatform();
 
-        await _cameraMovement.MoveToPlayer(transform);
+        PlatformSpawnData spawnData = _platformGenerator.PrepareNextPlatform();
 
-        _stickController.ResetStick(platform.StickSpawnPosition);
+        await UniTask.WhenAll(
+            _platformAppearance.Show(spawnData),
+            _cameraMovement.MoveToPlayer(transform));
+
+        _platformGenerator.ReleasePreviousPlatform();
+
+        _stickController.ResetStick(_platformProgress.CurrentPlatform.StickSpawnPosition);
 
         _playerEvents.RaiseReachedPlatform();
 

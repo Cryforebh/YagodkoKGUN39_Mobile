@@ -1,8 +1,5 @@
 using Cysharp.Threading.Tasks;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
-using TMPro;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour

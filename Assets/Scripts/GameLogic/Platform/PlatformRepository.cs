@@ -1,32 +1,41 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlatformRepository : MonoBehaviour
 {
-    [SerializeField] private Transform _platformsRoot;
+    // ¡ŒÀ≈≈ Õ≈ »—œŒÀ‹«”≈“—ﬂ!!! Õ≈ «¿¡€“‹ ”ƒ¿À»“‹!!!
 
     private readonly List<PlatformView> _platforms = new();
 
     public IReadOnlyList<PlatformView> Platforms => _platforms;
 
-    private void Awake()
+    public void Add(PlatformView platform)
+    {
+        if (platform == null)
+            return;
+
+        if (_platforms.Contains(platform))
+            return;
+
+        _platforms.Add(platform);
+    }
+
+    public bool Replace(PlatformView previousPlatform, PlatformView newPlatform)
+    {
+        if (previousPlatform == null || newPlatform == null)
+            return false;
+
+        int index = _platforms.IndexOf(previousPlatform);
+
+        if (index < 0)
+            return false;
+
+        _platforms[index] = newPlatform;
+        return true;
+    }
+
+    public void Clear()
     {
         _platforms.Clear();
-
-        foreach (Transform child in _platformsRoot)
-        {
-            PlatformView platform = child.GetComponent<PlatformView>();
-
-            if (platform != null)
-            {
-                _platforms.Add(platform);
-            }
-        }
-
-        _platforms.Sort((a, b) =>
-            a.transform.position.x.CompareTo(b.transform.position.x));
-
-        Debug.Log($"PlatformRepository: Ì‡È‰ÂÌÓ ÔÎ‡ÚÙÓÏ: {_platforms.Count}");
     }
 }

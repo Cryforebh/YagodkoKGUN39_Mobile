@@ -1,6 +1,4 @@
 using Cysharp.Threading.Tasks;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
@@ -19,7 +17,15 @@ public class CameraMovement : MonoBehaviour
         _defaultY = transform.position.y;
         _defaultZ = transform.position.z;
 
+        Initializable();
+
         _cancellationToken = this.GetCancellationTokenOnDestroy();
+    }
+
+    private void Initializable()
+    {
+        //transform.position = new Vector3(
+        //    transform.position.x - _shiftX, _defaultY, _defaultZ);
     }
 
     public async UniTask MoveToPlayer(Transform player)

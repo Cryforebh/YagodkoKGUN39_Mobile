@@ -1,27 +1,37 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlatformProgress : MonoBehaviour
 {
-    [SerializeField] private PlatformRepository _repository;
+    public PlatformView PreviousPlatform { get; private set; }
+    public PlatformView CurrentPlatform { get; private set; }
+    public PlatformView NextPlatform { get; private set; }
 
-    private int _currentPlatformIndex;
+    public bool HasNextPlatform => NextPlatform != null;
 
-    public PlatformView CurrentPlatform =>
-        _repository.Platforms[_currentPlatformIndex];
-
-    public PlatformView NextPlatform =>
-        _repository.Platforms[_currentPlatformIndex + 1];
-
-    public bool HasNextPlatform =>
-        _currentPlatformIndex + 1 < _repository.Platforms.Count;
+    public void Initialize(PlatformView currentPlatform, PlatformView nextPlatform)
+    {
+        PreviousPlatform = null;
+        CurrentPlatform = currentPlatform;
+        NextPlatform = nextPlatform;
+    }
 
     public void MoveToNextPlatform()
     {
         if (!HasNextPlatform)
             return;
 
-        _currentPlatformIndex++;
+        PreviousPlatform = CurrentPlatform;
+        CurrentPlatform = NextPlatform;
+        NextPlatform = null;
+    }
+
+    public void SetNextPlatform(PlatformView platform)
+    {
+        NextPlatform = platform;
+    }
+
+    public void ClearPreviousPlatform()
+    {
+        PreviousPlatform = null;
     }
 }

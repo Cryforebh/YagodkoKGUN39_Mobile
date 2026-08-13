@@ -1,4 +1,3 @@
-using UniRx;
 using Zenject;
 
 public class SceneInstaller : MonoInstaller
@@ -9,15 +8,21 @@ public class SceneInstaller : MonoInstaller
             .AsSingle();
         Container.BindInterfacesAndSelfTo<BonusModel>()
             .AsSingle();
-        Container.Bind<PlatformRepository>()
-            .FromComponentInHierarchy()
-            .AsSingle();
         Container.Bind<PlatformProgress>()
             .FromComponentInHierarchy()
             .AsSingle();
         Container.Bind<PlayerEvents>()
             .AsSingle();
         Container.Bind<BonusFactory>()
+            .AsSingle();
+        Container.Bind<PlatformPool>()
+            .FromComponentInHierarchy()
+            .AsSingle();
+        Container.BindInterfacesAndSelfTo<PlatformGenerator>()
+            .FromComponentInHierarchy()
+            .AsSingle();
+        Container.Bind<PlatformAppearance>()
+            .FromComponentInHierarchy()
             .AsSingle();
     }
 }
