@@ -19,7 +19,6 @@ public class MainMenuPresenter : MonoBehaviour
 
     private async UniTaskVoid Load()
     {
-        Debug.LogError(_sceneLoader != null);
         await _sceneLoader.LoadGame();
     }
 }

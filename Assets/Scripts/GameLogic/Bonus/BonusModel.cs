@@ -11,7 +11,6 @@ public class BonusModel : IBonusModel
 
     public void Add(Bonuses bonus)
     {
-        Debug.Log($"Бонус собран!");
         _collectedBonuses.Add(bonus);
     }
 

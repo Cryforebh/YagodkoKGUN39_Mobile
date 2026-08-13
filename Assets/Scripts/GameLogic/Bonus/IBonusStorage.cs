@@ -8,4 +8,5 @@ public interface IBonusStorage
     int HearthCount { get; }
 
     void Save(IBonusModel bonusModel);
+    void Clear();
 }

@@ -13,27 +13,37 @@ public class TimeModel : ITimeModel
 
     public IReadOnlyReactiveProperty<int> Time => _time;
 
-    public async UniTask StartTimer()
+    public UniTask StartTimer()
+    {
+        return CountTime(_cancellationTokenSource.Token);
+    }
+
+    private async UniTask CountTime(CancellationToken cancellationToken)
     {
         try
         {
-            while (!_cancellationTokenSource.Token.IsCancellationRequested)
+            while (true)
             {
                 await UniTask.Delay(
                     1000,
-                    cancellationToken: _cancellationTokenSource.Token);
+                    cancellationToken: cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 _time.Value++;
             }
         }
-        catch (OperationCanceledException){}
+        catch (OperationCanceledException)
+        {
+        }
     }
 
     public void Dispose()
     {
-        _cancellationTokenSource.Cancel();
-        _cancellationTokenSource.Dispose();
+        if (!_cancellationTokenSource.IsCancellationRequested)
+            _cancellationTokenSource.Cancel();
 
+        _cancellationTokenSource.Dispose();
         _time.Dispose();
     }
 }

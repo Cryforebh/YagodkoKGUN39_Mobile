@@ -59,13 +59,13 @@ public class PlayerPresenter : MonoBehaviour
 
         if (!landed)
         {
-            Debug.Log("ПРОМАХ! Игрок падает.");
+            Debug.Log("Неудача!");
             _playerEvents.RaisePlayerFell();
             await MovePlayerToFall();
             return;
         }
 
-        Debug.Log("УСПЕХ! Стик попал на следующую платформу.");
+        Debug.Log("Стик попал на следующую платформу!");
 
         await MovePlayerToPlatform(nextPlatform);
     }
@@ -84,7 +84,7 @@ public class PlayerPresenter : MonoBehaviour
 
         _playerEvents.RaiseReachedPlatform();
 
-        Debug.Log("Игрок перешел на следующую платформу.");
+        Debug.Log("Игрок перешел на следующую платформу!");
     }
 
     private async UniTask MovePlayerToFall()
@@ -100,8 +100,10 @@ public class PlayerPresenter : MonoBehaviour
 
         await UniTask.WhenAll(
             _stickController.LowerAsync(),
-            _playerMovement.FallAsync(fallDistance: 10f)
+            _playerMovement.FallAsync()
             );
+
+        _playerEvents.RaisePlayerFallCompleted();
     }
 
 

@@ -9,6 +9,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 5f;
     [SerializeField] private float _fallSpeed = 20f;
+    [SerializeField] private float _fallDistance = 5f;
 
     //private Rigidbody2D _body;
     private CancellationToken _cancellationToken;
@@ -36,9 +37,9 @@ public class PlayerMovement : MonoBehaviour
         transform.position = targetPosition;
     }
 
-    public async UniTask FallAsync(float fallDistance)
+    public async UniTask FallAsync()
     {
-        Vector3 targetPosition = transform.position + Vector3.down * fallDistance;
+        Vector3 targetPosition = transform.position + Vector3.down * _fallDistance;
 
         //_body.isKinematic = true;
 

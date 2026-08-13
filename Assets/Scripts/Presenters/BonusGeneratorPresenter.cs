@@ -29,7 +29,7 @@ public class BonusGeneratorPresenter : MonoBehaviour
             .Subscribe(_ => GenerateBonuses())
             .AddTo(_disposables);
 
-        _playerEvents.PlayerFell
+        _playerEvents.PlayerFallCompleted
             .Subscribe(_ => ClearPreviousBonuses())
             .AddTo(_disposables);
     }

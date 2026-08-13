@@ -10,7 +10,6 @@ public class BonusUIPresenter : MonoBehaviour
     [SerializeField] private TMP_Text _starText;
     [SerializeField] private TMP_Text _hearthText;
 
-    [Inject] private IBonusStorage _bonusStorage;
     [Inject] private IBonusModel _bonusModel;
 
     private readonly CompositeDisposable _disposables = new();
@@ -31,11 +30,6 @@ public class BonusUIPresenter : MonoBehaviour
             .ObserveRemove()
             .Subscribe(OnBonusRemoved)
             .AddTo(_disposables);
-
-        //_bonusModel.CollectedBonuses
-        //    .ObserveReset()
-        //    .Subscribe(_ => OnBonusesReset())
-        //    .AddTo(_disposables);
     }
 
     private void OnBonusAdded(CollectionAddEvent<Bonuses> eventData)
@@ -70,21 +64,10 @@ public class BonusUIPresenter : MonoBehaviour
         UpdateUI();
     }
 
-    //private void OnBonusesReset()
-    //{
-    //    _starCount = 0;
-    //    _hearthCount = 0;
-
-    //    UpdateUI();
-    //}
-
     private void UpdateUI()
     {
-        int savedStars = _bonusStorage.StarCount;
-        int savedHearths = _bonusStorage.HearthCount;
-
-        _starText.text = $"{savedStars + _starCount}";
-        _hearthText.text = $"{savedHearths + _hearthCount}";
+        _starText.text = _starCount.ToString();
+        _hearthText.text = _hearthCount.ToString();
     }
 
     private void OnDestroy()

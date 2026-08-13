@@ -8,7 +8,6 @@ public class BonusStorage : IBonusStorage
     private const string HearthKey = "LastSession_Hearths";
 
     public int StarCount => PlayerPrefs.GetInt(StarKey, 0);
-
     public int HearthCount => PlayerPrefs.GetInt(HearthKey, 0);
 
     public void Save(IBonusModel bonusModel)
@@ -30,12 +29,16 @@ public class BonusStorage : IBonusStorage
             }
         }
 
-        int totalStars = StarCount + stars;
-        int totalHearths = HearthCount + hearths;
+        // Результат новой игры заменяет результат предыдущей.
+        PlayerPrefs.SetInt(StarKey, stars);
+        PlayerPrefs.SetInt(HearthKey, hearths);
+        PlayerPrefs.Save();
+    }
 
-        PlayerPrefs.SetInt(StarKey, totalStars);
-        PlayerPrefs.SetInt(HearthKey, totalHearths);
-
+    public void Clear()
+    {
+        PlayerPrefs.SetInt(StarKey, 0);
+        PlayerPrefs.SetInt(HearthKey, 0);
         PlayerPrefs.Save();
     }
 }
