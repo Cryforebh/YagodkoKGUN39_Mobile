@@ -21,6 +21,15 @@ public class PlatformView : MonoBehaviour
         }
     }
 
+    public float PivotToRightEdge
+    {
+        get
+        {
+            float scaleX = Mathf.Abs(transform.lossyScale.x);
+            return (_collider.size.x * 0.5f + _collider.offset.x) * scaleX;
+        }
+    }
+
     public Vector3 StickSpawnPosition => new Vector3(
         RightEdge,
         TopEdge,

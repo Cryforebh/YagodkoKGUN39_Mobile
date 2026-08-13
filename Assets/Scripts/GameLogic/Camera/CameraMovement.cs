@@ -7,6 +7,8 @@ public class CameraMovement : MonoBehaviour
     [SerializeField] private float _moveSpeed = 5f;
     [SerializeField] private float _shiftX = -2f;
 
+    private Camera _camera;
+
     private float _defaultY;
     private float _defaultZ;
 
@@ -14,6 +16,8 @@ public class CameraMovement : MonoBehaviour
 
     private void Awake()
     {
+        _camera = GetComponent<Camera>();
+
         _defaultY = transform.position.y;
         _defaultZ = transform.position.z;
 
@@ -26,6 +30,15 @@ public class CameraMovement : MonoBehaviour
     {
         //transform.position = new Vector3(
         //    transform.position.x - _shiftX, _defaultY, _defaultZ);
+    }
+
+    public float GetRightEdgeAfterMove(Transform player)
+    {
+        float targetCameraX = player.position.x - _shiftX;
+
+        float halfVisibleWidth = _camera.orthographicSize * _camera.aspect;
+
+        return targetCameraX + halfVisibleWidth;
     }
 
     public async UniTask MoveToPlayer(Transform player)

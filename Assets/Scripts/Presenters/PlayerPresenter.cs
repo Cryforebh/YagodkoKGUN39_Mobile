@@ -77,7 +77,9 @@ public class PlayerPresenter : MonoBehaviour
 
         _platformProgress.MoveToNextPlatform();
 
-        PlatformSpawnData spawnData = _platformGenerator.PrepareNextPlatform();
+        float cameraRightEdge = _cameraMovement.GetRightEdgeAfterMove(transform);
+
+        PlatformSpawnData spawnData = _platformGenerator.PrepareNextPlatform(cameraRightEdge);
 
         await UniTask.WhenAll(
             _platformAppearance.Show(spawnData),

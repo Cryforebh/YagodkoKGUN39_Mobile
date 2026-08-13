@@ -46,7 +46,7 @@ public class PlatformGenerator : MonoBehaviour, IInitializable
         _platformProgress.Initialize(firstPlatform, secondPlatform);
     }
 
-    public PlatformSpawnData PrepareNextPlatform()
+    public PlatformSpawnData PrepareNextPlatform(float cameraRightEdge)
     {
         PlatformView currentPlatform = _platformProgress.CurrentPlatform;
 
@@ -63,7 +63,7 @@ public class PlatformGenerator : MonoBehaviour, IInitializable
 
         nextPlatform.transform.SetParent(_activePlatformsRoot);
 
-        Vector3 targetPosition = CalculatePositionAfter(nextPlatform, currentPlatform);
+        Vector3 targetPosition = CalculatePositionAfter(nextPlatform, currentPlatform, cameraRightEdge);
 
         //PlaceAfter(nextPlatform, _platformProgress.CurrentPlatform);
 
@@ -100,6 +100,37 @@ public class PlatformGenerator : MonoBehaviour, IInitializable
         float gap = Random.Range(_minGap, _maxGap);
 
         float targetX = previousPlatform.RightEdge + gap + platform.PivotToLeftEdge;
+
+        return new Vector3(
+            targetX,
+            _platformY,
+            _firstPlatformPosition.z);
+    }
+
+    private Vector3 CalculatePositionAfter(PlatformView platform, PlatformView previousPlatform, float cameraRightEdge)
+    {
+        // Минимальная позиция с соблюдением Min Gap.
+        float minimumTargetX = previousPlatform.RightEdge + _minGap + platform.PivotToLeftEdge;
+
+        // Максимальная позиция, при которой правый край
+        // платформы ещё находится внутри камеры.
+        float maximumTargetX = cameraRightEdge - platform.PivotToRightEdge;
+
+        if (maximumTargetX < minimumTargetX)
+        {
+            Debug.LogWarning($"Платформа {platform.name} не помещается в камеру с промежутком {_minGap}.");
+
+            // Приоритет границе камеры.
+            // В редком случае промежуток может стать меньше Min Gap.
+            return new Vector3(
+                maximumTargetX,
+                _platformY,
+                _firstPlatformPosition.z);
+        }
+
+        float preferredTargetX = previousPlatform.RightEdge + Random.Range(_minGap, _maxGap) + platform.PivotToLeftEdge;
+
+        float targetX = Mathf.Min(preferredTargetX, maximumTargetX);
 
         return new Vector3(
             targetX,

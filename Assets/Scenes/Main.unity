@@ -343,7 +343,7 @@ GameObject:
   - component: {fileID: 254741414}
   - component: {fileID: 254741415}
   m_Layer: 0
-  m_Name: AudioSource
+  m_Name: Atmosphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
