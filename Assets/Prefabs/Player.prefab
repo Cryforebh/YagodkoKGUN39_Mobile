@@ -32,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -1.5, z: 0}
-  m_LocalScale: {x: 2.6576998, y: 2.6576998, z: 2.6576998}
+  m_LocalScale: {x: 2.129349, y: 5.0352783, z: 2.6576998}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4839616093922463491}
@@ -78,7 +78,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 2
+  m_SortingOrder: 3
   m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
   m_Color: {r: 0.7924528, g: 0.7924528, b: 0.7924528, a: 1}
   m_FlipX: 0
@@ -98,7 +98,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3975009899348999595}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -176,8 +176,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _stickPivot: {fileID: 0}
   _stick: {fileID: 0}
-  _growSpeed: 2
-  _maxLength: 1
+  _growSpeed: 1
+  _rotationSpeed: 300
+  _maxLength: 1.25
 --- !u!114 &1621949564766350576
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -207,6 +208,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _moveSpeed: 3
   _fallSpeed: 20
+  _fallDistance: 10
 --- !u!1 &7850483675684826317
 GameObject:
   m_ObjectHideFlags: 0
@@ -223,7 +225,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4839616093922463491
 Transform:
   m_ObjectHideFlags: 0
@@ -251,8 +253,8 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 0.7795542, b: 0.4669811, a: 1}
-  m_Intensity: 9.19
-  m_Range: 2.8
+  m_Intensity: 3.37
+  m_Range: 3.77
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
