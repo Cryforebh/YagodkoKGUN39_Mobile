@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -19,8 +17,13 @@ public class RuntimeFpsCounter : MonoBehaviour
             return;
 
         float fps = _frameCount / _elapsedTime;
+        double refreshRate =
+            Screen.currentResolution.refreshRateRatio.value;
 
-        _fpsText.text = $"FPS: {fps:0}";
+        _fpsText.text =
+            $"FPS: {fps:0}\n" +
+            $"Target: {Application.targetFrameRate}\n" +
+            $"Display: {refreshRate} Hz";
 
         _elapsedTime = 0f;
         _frameCount = 0;
