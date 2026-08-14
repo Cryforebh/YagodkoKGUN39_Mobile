@@ -3,6 +3,7 @@ using UniRx;
 using UnityEngine;
 using Zenject;
 
+[RequireComponent(typeof(PlayerAnimation))]
 public class PlayerPresenter : MonoBehaviour
 {
     [SerializeField] private StickController _stickController;
@@ -14,12 +15,15 @@ public class PlayerPresenter : MonoBehaviour
     [Inject] private PlatformAppearance _platformAppearance;
     [Inject] private PlayerEvents _playerEvents;
 
+    private PlayerAnimation _playerAnimation;
     private readonly CompositeDisposable _disposables = new();
 
-    public float PlayerOffsetY => transform.localScale.y / 14f;
+    public float PlayerOffsetY => transform.localScale.y / 9f;
 
     private void Awake()
     {
+        _playerAnimation = GetComponent<PlayerAnimation>();
+
         _stickController.StickReady
             .Subscribe(_ => CheckLandingAsync().Forget())
             .AddTo(_disposables);
@@ -41,6 +45,8 @@ public class PlayerPresenter : MonoBehaviour
 
         _stickController.ResetStick(
             currentPlatform.StickSpawnPosition);
+
+        _playerAnimation.PlayIdle();
     }
 
     private async UniTask CheckLandingAsync()
@@ -48,7 +54,7 @@ public class PlayerPresenter : MonoBehaviour
         if (!_platformProgress.HasNextPlatform)
             return;
 
-        Vector2 stickEnd = _stickController.GetStickEndPosition();
+        Vector2 stickEnd = _stickController.GetStickEndPosition(); 
 
         PlatformView nextPlatform = _platformProgress.NextPlatform;
 
@@ -73,7 +79,11 @@ public class PlayerPresenter : MonoBehaviour
     {
         Vector3 targetPosition = platform.GetLandingPosition(PlayerOffsetY);
 
+        _playerAnimation.PlayRun();
+
         await _playerMovement.MoveTo(targetPosition);
+
+        _playerAnimation.PlayIdle();
 
         _platformProgress.MoveToNextPlatform();
 
@@ -103,7 +113,11 @@ public class PlayerPresenter : MonoBehaviour
             transform.position.y,
             transform.position.z);
 
+        _playerAnimation.PlayRun();
+
         await _playerMovement.MoveTo(fallStartPosition);
+
+        _playerAnimation.PlayIdle();
 
         await UniTask.WhenAll(
             _stickController.LowerAsync(),
