@@ -16,6 +16,7 @@ public class GameOverPresenter : MonoBehaviour
     [Header("Result")]
     [SerializeField] private TMP_Text _timeResultText;
     [SerializeField] private TMP_Text _platformResultText;
+    [SerializeField] private TMP_Text _bestPlatformResultText;
 
     [Header("Animation")]
     [SerializeField] private float _animationDuration = 0.5f;
@@ -23,6 +24,7 @@ public class GameOverPresenter : MonoBehaviour
 
     [Inject] private ITimeModel _timeModel;
     [Inject] private PlatformProgress _platformProgress;
+    [Inject] private IPlatformScoreStorage _platformScoreStorage;
     [Inject] private PlayerEvents _playerEvents;
 
     private readonly CompositeDisposable _disposables = new();
@@ -57,9 +59,15 @@ public class GameOverPresenter : MonoBehaviour
 
         _timeModel.StopTimer();
 
-        _timeResultText.text = $"Time: {_timeModel.Time.Value} sec.";
+        int currentScore = _platformProgress.PassedPlatforms;
+        int bestScore = _platformScoreStorage.SaveIfBest(currentScore);
+
+        if (_timeResultText)
+            _timeResultText.text = $"Time: {_timeModel.Time.Value} sec.";
 
         _platformResultText.text = $"Platforms: {_platformProgress.PassedPlatforms}";
+
+        _bestPlatformResultText.text = $"Best Score: {bestScore}";
 
         _gameInterface.SetActive(false);
     }

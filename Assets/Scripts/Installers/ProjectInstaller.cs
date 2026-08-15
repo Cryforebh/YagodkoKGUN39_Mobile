@@ -20,5 +20,8 @@ public class ProjectInstaller : ScriptableObjectInstaller
         Container.Bind<IBonusStorage>()
             .To<BonusStorage>()
             .AsSingle();
+        Container.Bind<IPlatformScoreStorage>()
+            .To<PlatformScoreStorage>()
+            .AsSingle();
     }
 }
