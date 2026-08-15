@@ -8,6 +8,7 @@ public class StickController : MonoBehaviour
 {
     [SerializeField] private Transform _stickPivot;
     [SerializeField] private Transform _stick;
+    [SerializeField] private SpriteRenderer _stickRenderer;
 
     [SerializeField] private float _growSpeed = 5f;
     [SerializeField] private float _rotationSpeed = 300f;
@@ -17,7 +18,7 @@ public class StickController : MonoBehaviour
     private bool _isRotating;
     private bool _canGrow;
 
-    private Vector3 _defaultScale;
+    private Vector2 _defaultSize;
     private Vector3 _defaultPosition;
 
     private CancellationToken _cancellationToken;
@@ -28,9 +29,10 @@ public class StickController : MonoBehaviour
 
     private void Awake()
     {
-        _cancellationToken = this.GetCancellationTokenOnDestroy();
+        _cancellationToken =
+            this.GetCancellationTokenOnDestroy();
 
-        _defaultScale = _stick.localScale;
+        _defaultSize = _stickRenderer.size;
         _defaultPosition = _stick.localPosition;
 
         ResetStick(_stickPivot.position);
@@ -39,24 +41,16 @@ public class StickController : MonoBehaviour
     private void Update()
     {
         if (_isGrowing)
-        {
             GrowStick();
-        }
 
         if (_isRotating)
-        {
             RotateStick();
-        }
 
         if (Input.GetMouseButtonDown(0))
-        {
             StartGrowing();
-        }
 
         if (Input.GetMouseButtonUp(0))
-        {
             StopGrowing();
-        }
     }
 
     private void StartGrowing()
@@ -79,24 +73,19 @@ public class StickController : MonoBehaviour
 
     private void GrowStick()
     {
-        float previousLength = _stick.localScale.y;
+        Vector2 size = _stickRenderer.size;
 
-        float newLength = previousLength + _growSpeed * Time.deltaTime;
-        newLength = Mathf.Min(newLength, _maxLength);
+        size.y = Mathf.Min(
+            size.y + _growSpeed * Time.deltaTime,
+            _maxLength);
 
-        float lengthDifference = newLength - previousLength;
-
-        Vector3 scale = _stick.localScale;
-        scale.y = newLength;
-
-        _stick.localScale = scale;
-
-        _stick.localPosition += Vector3.up * (lengthDifference / 2f);
+        _stickRenderer.size = size;
     }
 
     private void RotateStick()
     {
-        float angle = _stickPivot.localEulerAngles.z;
+        float angle =
+            _stickPivot.localEulerAngles.z;
 
         if (angle > 180f)
             angle -= 360f;
@@ -111,21 +100,21 @@ public class StickController : MonoBehaviour
             _stickReady.OnNext(Unit.Default);
         }
 
-        _stickPivot.localRotation = Quaternion.Euler(
-            0f,
-            0f,
-            angle);
+        _stickPivot.localRotation =
+            Quaternion.Euler(0f, 0f, angle);
     }
 
     public async UniTask LowerAsync()
     {
-        float targetAngle = -180f;
+        const float targetAngle = -180f;
 
         while (true)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken
+                .ThrowIfCancellationRequested();
 
-            float angle = _stickPivot.localEulerAngles.z;
+            float angle =
+                _stickPivot.localEulerAngles.z;
 
             if (angle > 180f)
                 angle -= 360f;
@@ -135,16 +124,19 @@ public class StickController : MonoBehaviour
                 targetAngle,
                 _rotationSpeed * Time.deltaTime);
 
-            _stickPivot.localRotation = Quaternion.Euler(
-                0f,
-                0f,
-                angle);
+            _stickPivot.localRotation =
+                Quaternion.Euler(0f, 0f, angle);
 
-            if (Mathf.Approximately(angle, targetAngle))
+            if (Mathf.Approximately(
+                    angle,
+                    targetAngle))
+            {
                 break;
+            }
 
             await UniTask.Yield(
-                cancellationToken: _cancellationToken);
+                cancellationToken:
+                _cancellationToken);
         }
     }
 
@@ -154,18 +146,19 @@ public class StickController : MonoBehaviour
         _isRotating = false;
         _canGrow = true;
 
-        _stick.localScale = _defaultScale;
+        _stickRenderer.size = _defaultSize;
         _stick.localPosition = _defaultPosition;
+        _stick.localScale = Vector3.one;
 
         _stickPivot.position = position;
-        _stickPivot.localRotation = Quaternion.identity;
+        _stickPivot.localRotation =
+            Quaternion.identity;
     }
 
     public Vector2 GetStickEndPosition()
     {
         return _stick.TransformPoint(
-            new Vector3(0f, 0.5f, 0f)
-        );
+            new Vector3(0f, _stickRenderer.size.y, 0f));
     }
 
     private void OnDestroy()
@@ -175,12 +168,21 @@ public class StickController : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (_stick == null)
+        if (_stick == null ||
+            _stickRenderer == null)
+        {
             return;
+        }
 
-        Vector2 stickEnd = _stick.TransformPoint(
-            new Vector3(0f, 0.5f, 0f)
-        );
+        float halfLength =
+            _stickRenderer.size.y * 0.5f;
+
+        Vector2 stickEnd =
+            _stick.TransformPoint(
+                new Vector3(
+                    0f,
+                    halfLength,
+                    0f));
 
         Gizmos.DrawSphere(stickEnd, 0.1f);
     }

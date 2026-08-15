@@ -16171,7 +16171,7 @@ ParticleSystem:
   m_GameObject: {fileID: 772772742}
   serializedVersion: 8
   lengthInSec: 5
-  simulationSpeed: 2
+  simulationSpeed: 2.5
   stopAction: 0
   cullingMode: 0
   ringBufferMode: 0
@@ -16352,7 +16352,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 0.7374047, g: 0.6740388, b: 0.764151, a: 0.4117647}
+      maxColor: {r: 0.7374047, g: 0.6740388, b: 0.764151, a: 0.5764706}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -16416,8 +16416,8 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 0.025
-      minScalar: 0.005
+      scalar: 0.03
+      minScalar: 0.02
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -20912,8 +20912,8 @@ Transform:
   m_GameObject: {fileID: 778257759}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.005, y: 0.005, z: 0}
-  m_LocalScale: {x: 0.01, y: 0.01, z: 1}
+  m_LocalPosition: {x: -0.005, y: 0.00131, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1451488818}
@@ -20959,13 +20959,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 4
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6,
-    type: 3}
-  m_Color: {r: 0.48998037, g: 0.4478907, b: 0.5188679, a: 1}
+  m_Sprite: {fileID: 1091154706, guid: 4fef45b75e0bb3b41b0a0528715f81ca, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_DrawMode: 2
+  m_Size: {x: 0.046875, y: 0}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -21005,12 +21004,12 @@ BoxCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
+    border: {x: 0, y: 0.0146484375, z: 0, w: 0.0107421875}
+    pivot: {x: 0.5, y: 0}
+    oldSize: {x: 0.046875, y: 1.4833984}
+    newSize: {x: 0.046875, y: 0}
     adaptiveTilingThreshold: 0.5
-    drawMode: 0
+    drawMode: 2
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
@@ -27232,7 +27231,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.1316, y: 0, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 778257760}
@@ -27977,9 +27976,24 @@ PrefabInstance:
       objectReference: {fileID: 778257760}
     - target: {fileID: 2827109567063907006, guid: 66e5261a4caf3744394a4a100702d80a,
         type: 3}
+      propertyPath: _growSpeed
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827109567063907006, guid: 66e5261a4caf3744394a4a100702d80a,
+        type: 3}
+      propertyPath: _maxLength
+      value: 3.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827109567063907006, guid: 66e5261a4caf3744394a4a100702d80a,
+        type: 3}
       propertyPath: _stickPivot
       value: 
       objectReference: {fileID: 1451488818}
+    - target: {fileID: 2827109567063907006, guid: 66e5261a4caf3744394a4a100702d80a,
+        type: 3}
+      propertyPath: _stickRenderer
+      value: 
+      objectReference: {fileID: 778257761}
     - target: {fileID: 3855823535585934290, guid: 66e5261a4caf3744394a4a100702d80a,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -28485,7 +28499,7 @@ ParticleSystemRenderer:
   m_MinParticleSize: 0
   m_MaxParticleSize: 0.5
   m_CameraVelocityScale: 0
-  m_VelocityScale: 0.02
+  m_VelocityScale: 0.015
   m_LengthScale: 0.3
   m_SortingFudge: 0
   m_NormalDirection: 1
@@ -29082,7 +29096,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 250
+    maxNumParticles: 400
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0
