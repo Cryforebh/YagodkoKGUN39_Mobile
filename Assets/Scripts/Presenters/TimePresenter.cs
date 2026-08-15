@@ -23,7 +23,7 @@ public class TimePresenter : MonoBehaviour
 
     private void UpdateTime(int time)
     {
-        _timeText.text = time.ToString();
+        _timeText.text = $"T: {time.ToString()}";
     }
 
     private void OnDestroy()

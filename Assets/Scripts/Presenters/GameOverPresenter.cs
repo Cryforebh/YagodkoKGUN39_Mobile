@@ -14,7 +14,7 @@ public class GameOverPresenter : MonoBehaviour
     [SerializeField] private RectTransform _gameOverPanel;
 
     [Header("Result")]
-    [SerializeField] private TMP_Text _resultText;
+    [SerializeField] private TMP_Text _timeResultText;
     [SerializeField] private TMP_Text _platformResultText;
 
     [Header("Animation")]
@@ -57,9 +57,9 @@ public class GameOverPresenter : MonoBehaviour
 
         _timeModel.StopTimer();
 
-        _resultText.text = $"Время: {_timeModel.Time.Value} сек.";
+        _timeResultText.text = $"Time: {_timeModel.Time.Value} sec.";
 
-        _platformResultText.text = $"Пройдено платформ: {_platformProgress.PassedPlatforms}";
+        _platformResultText.text = $"Platforms: {_platformProgress.PassedPlatforms}";
 
         _gameInterface.SetActive(false);
     }
