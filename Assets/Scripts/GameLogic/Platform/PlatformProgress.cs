@@ -7,12 +7,15 @@ public class PlatformProgress : MonoBehaviour
     public PlatformView NextPlatform { get; private set; }
 
     public bool HasNextPlatform => NextPlatform != null;
+    public int PassedPlatforms { get; private set; }
 
     public void Initialize(PlatformView currentPlatform, PlatformView nextPlatform)
     {
         PreviousPlatform = null;
         CurrentPlatform = currentPlatform;
         NextPlatform = nextPlatform;
+
+        PassedPlatforms = 0;
     }
 
     public void MoveToNextPlatform()
@@ -23,6 +26,8 @@ public class PlatformProgress : MonoBehaviour
         PreviousPlatform = CurrentPlatform;
         CurrentPlatform = NextPlatform;
         NextPlatform = null;
+
+        PassedPlatforms++;
     }
 
     public void SetNextPlatform(PlatformView platform)

@@ -130,6 +130,8 @@ public class PlayerPresenter : MonoBehaviour
 
         _playerAnimation.PlayIdle();
 
+        _playerEvents.RaisePlayerFallStarted();
+
         await UniTask.WhenAll(
             _stickController.LowerAsync(),
             _playerMovement.FallAsync()

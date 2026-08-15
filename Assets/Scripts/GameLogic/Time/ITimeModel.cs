@@ -7,4 +7,6 @@ public interface ITimeModel : IDisposable
     IReadOnlyReactiveProperty<int> Time { get; }
 
     UniTask StartTimer();
+
+    void StopTimer();
 }

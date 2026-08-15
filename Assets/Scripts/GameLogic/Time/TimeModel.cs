@@ -14,6 +14,11 @@ public class TimeModel : ITimeModel
     {
         return CountTime(_cancellationTokenSource.Token);
     }
+    public void StopTimer()
+    {
+        if (!_cancellationTokenSource.IsCancellationRequested)
+            _cancellationTokenSource.Cancel();
+    }
 
     private async UniTask CountTime(CancellationToken cancellationToken)
     {
@@ -37,8 +42,7 @@ public class TimeModel : ITimeModel
 
     public void Dispose()
     {
-        if (!_cancellationTokenSource.IsCancellationRequested)
-            _cancellationTokenSource.Cancel();
+        StopTimer();
 
         _cancellationTokenSource.Dispose();
         _time.Dispose();
