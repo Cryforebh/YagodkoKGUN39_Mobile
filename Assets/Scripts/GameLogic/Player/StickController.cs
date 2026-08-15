@@ -24,8 +24,10 @@ public class StickController : MonoBehaviour
     private CancellationToken _cancellationToken;
 
     private readonly Subject<Unit> _stickReady = new();
+    private readonly Subject<Unit> _growthFinished = new();
 
     public IObservable<Unit> StickReady => _stickReady;
+    public IObservable<Unit> GrowthFinished => _growthFinished;
 
     private void Awake()
     {
@@ -68,6 +70,15 @@ public class StickController : MonoBehaviour
 
         _isGrowing = false;
         _canGrow = false;
+
+        _growthFinished.OnNext(Unit.Default);
+    }
+
+    public void StartRotation()
+    {
+        if (_isGrowing || _isRotating)
+            return;
+
         _isRotating = true;
     }
 
@@ -163,6 +174,7 @@ public class StickController : MonoBehaviour
 
     private void OnDestroy()
     {
+        _growthFinished.Dispose();
         _stickReady.Dispose();
     }
 

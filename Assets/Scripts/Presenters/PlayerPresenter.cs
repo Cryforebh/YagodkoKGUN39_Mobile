@@ -27,6 +27,10 @@ public class PlayerPresenter : MonoBehaviour
         _stickController.StickReady
             .Subscribe(_ => CheckLandingAsync().Forget())
             .AddTo(_disposables);
+
+        _stickController.GrowthFinished
+            .Subscribe(_ => PlayPushAndDropStickAsync().Forget())
+            .AddTo(_disposables);
     }
 
     private void Start()
@@ -73,6 +77,13 @@ public class PlayerPresenter : MonoBehaviour
         Debug.Log("Стик попал на следующую платформу!");
 
         await MovePlayerToPlatform(nextPlatform);
+    }
+
+    private async UniTask PlayPushAndDropStickAsync()
+    {
+        await _playerAnimation.PlayPushAsync();
+
+        _stickController.StartRotation();
     }
 
     private async UniTask MovePlayerToPlatform(PlatformView platform)

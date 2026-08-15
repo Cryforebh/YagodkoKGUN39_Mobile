@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 61258765b311c1e4bbcc9b0adad834b9
+guid: 6eadc4510d742564f9d1a77eb483dd53
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -48,7 +48,7 @@ TextureImporter:
   spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 2048
+  spritePixelsToUnits: 1024
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 0
   alphaUsage: 1
@@ -123,148 +123,85 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PlayerRun_v0.3_0
+      name: RobotPush_0
       rect:
         serializedVersion: 2
-        x: 49
-        y: 508
-        width: 280
-        height: 337
+        x: 0
+        y: 0
+        width: 273
+        height: 270
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1dc8eedc36d9bbd44b8984219d75113a
-      internalID: -921915789
+      spriteID: 1ede7783c99b20243bdb87a9a3dac71e
+      internalID: 1706895116
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerRun_v0.3_1
+      name: RobotPush_1
       rect:
         serializedVersion: 2
-        x: 322
-        y: 507
-        width: 286
-        height: 340
+        x: 273
+        y: 0
+        width: 273
+        height: 270
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8a0e09410ef33ed48899bf63df5f9290
-      internalID: -741090499
+      spriteID: ce66242dd3335b64283eda248cdb365f
+      internalID: -516231989
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerRun_v0.3_2
+      name: RobotPush_2
       rect:
         serializedVersion: 2
-        x: 608
-        y: 510
-        width: 302
-        height: 335
+        x: 546
+        y: 0
+        width: 273
+        height: 270
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 311ffe1996bccb94db8fd1db25bd5f6b
-      internalID: -184784595
+      spriteID: d4a596786e5149e4980886714ae26cea
+      internalID: -613480090
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerRun_v0.3_3
+      name: RobotPush_3
       rect:
         serializedVersion: 2
-        x: 946
-        y: 508
-        width: 307
-        height: 340
+        x: 819
+        y: 0
+        width: 273
+        height: 270
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 62202b03b31c82f4bafdad9d6db80bb1
-      internalID: 1869986916
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerRun_v0.3_4
-      rect:
-        serializedVersion: 2
-        x: 1254
-        y: 508
-        width: 324
-        height: 340
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: eb791935f0b631c44994bb9aac9239d7
-      internalID: 1895722183
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerRun_v0.3_5
-      rect:
-        serializedVersion: 2
-        x: 23
-        y: 149
-        width: 333
-        height: 349
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 000de68121cf3134c9df83a2d1f96393
-      internalID: -1884452893
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerRun_v0.3_6
-      rect:
-        serializedVersion: 2
-        x: 340
-        y: 149
-        width: 316
-        height: 359
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 540035aae3c80a34089fffe3f38ca551
-      internalID: 954742824
+      spriteID: f6efa4354cf7b304581785fcfd47c460
+      internalID: -1091479431
       vertices: []
       indices: 
       edges: []
@@ -272,7 +209,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: e0dd1b38903bec24295b99fb51b27ea0
+    spriteID: b8017a3e02e222b4da1a681a760cd1ba
     internalID: 0
     vertices: []
     indices: 
@@ -280,16 +217,10 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      PlayerRun_v0.3_0: -921915789
-      PlayerRun_v0.3_1: -741090499
-      PlayerRun_v0.3_2: -184784595
-      PlayerRun_v0.3_3: 1869986916
-      PlayerRun_v0.3_4: 1895722183
-      PlayerRun_v0.3_5: -1884452893
-      PlayerRun_v0.3_6: 954742824
-      PlayerRun_v0.3_7: 475150479
-      PlayerRun_v0.3_8: 2130733755
-      PlayerRun_v0.3_9: -850354692
+      RobotPush_0: 1706895116
+      RobotPush_1: -516231989
+      RobotPush_2: -613480090
+      RobotPush_3: -1091479431
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
