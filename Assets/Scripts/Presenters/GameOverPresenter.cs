@@ -17,6 +17,8 @@ public class GameOverPresenter : MonoBehaviour
     [SerializeField] private TMP_Text _timeResultText;
     [SerializeField] private TMP_Text _platformResultText;
     [SerializeField] private TMP_Text _bestPlatformResultText;
+    [SerializeField] private TMP_Text _hearthResultText;
+    [SerializeField] private TMP_Text _starResultText;
 
     [Header("Animation")]
     [SerializeField] private float _animationDuration = 0.5f;
@@ -69,6 +71,9 @@ public class GameOverPresenter : MonoBehaviour
 
         if (_timeResultText)
             _timeResultText.text = $"Time: {_timeModel.Time.Value} sec.";
+
+        _starResultText.text = _bonusStorage.StarCount.ToString();
+        _hearthResultText.text = _bonusStorage.HearthCount.ToString();
 
         _platformResultText.text = $"Platforms: {_platformProgress.PassedPlatforms}";
 
