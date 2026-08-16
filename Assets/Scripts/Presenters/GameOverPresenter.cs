@@ -25,6 +25,8 @@ public class GameOverPresenter : MonoBehaviour
     [Inject] private ITimeModel _timeModel;
     [Inject] private PlatformProgress _platformProgress;
     [Inject] private IPlatformScoreStorage _platformScoreStorage;
+    [Inject] private IBonusStorage _bonusStorage;
+    [Inject] private IBonusModel _bonusModel;
     [Inject] private PlayerEvents _playerEvents;
 
     private readonly CompositeDisposable _disposables = new();
@@ -60,14 +62,17 @@ public class GameOverPresenter : MonoBehaviour
         _timeModel.StopTimer();
 
         int currentScore = _platformProgress.PassedPlatforms;
-        int bestScore = _platformScoreStorage.SaveIfBest(currentScore);
+        int currentTime = _timeModel.Time.Value;
+
+        _platformScoreStorage.SaveIfBest(currentScore, currentTime);
+        _bonusStorage.SaveBest(_bonusModel);
 
         if (_timeResultText)
             _timeResultText.text = $"Time: {_timeModel.Time.Value} sec.";
 
         _platformResultText.text = $"Platforms: {_platformProgress.PassedPlatforms}";
 
-        _bestPlatformResultText.text = $"Best Score: {bestScore}";
+        _bestPlatformResultText.text = $"Best Score: {_platformScoreStorage.BestScore}";
 
         _gameInterface.SetActive(false);
     }
