@@ -8,6 +8,7 @@ public class StickController : MonoBehaviour
 {
     [SerializeField] private Transform _stickPivot;
     [SerializeField] private Transform _stick;
+    [SerializeField] private Transform _stickEndTarget;
     [SerializeField] private SpriteRenderer _stickRenderer;
 
     [SerializeField] private float _growSpeed = 5f;
@@ -24,9 +25,12 @@ public class StickController : MonoBehaviour
     private CancellationToken _cancellationToken;
 
     private readonly Subject<Unit> _stickReady = new();
+
+    private readonly Subject<Unit> _growthStarted = new();
     private readonly Subject<Unit> _growthFinished = new();
 
     public IObservable<Unit> StickReady => _stickReady;
+    public IObservable<Unit> GrowthStarted => _growthStarted;
     public IObservable<Unit> GrowthFinished => _growthFinished;
 
     private void Awake()
@@ -61,6 +65,8 @@ public class StickController : MonoBehaviour
             return;
 
         _isGrowing = true;
+
+        _growthStarted.OnNext(Unit.Default);
     }
 
     private void StopGrowing()
@@ -91,6 +97,19 @@ public class StickController : MonoBehaviour
             _maxLength);
 
         _stickRenderer.size = size;
+
+        UpdateStickEndTarget();
+    }
+
+    private void UpdateStickEndTarget()
+    {
+        Vector3 position =
+            _stickEndTarget.localPosition;
+
+        position.x = 0f;
+        position.y = _stickRenderer.size.y;
+
+        _stickEndTarget.localPosition = position;
     }
 
     private void RotateStick()
@@ -161,9 +180,12 @@ public class StickController : MonoBehaviour
         _stick.localPosition = _defaultPosition;
         _stick.localScale = Vector3.one;
 
+        UpdateStickEndTarget();
+
         _stickPivot.position = position;
-        _stickPivot.localRotation =
-            Quaternion.identity;
+        _stickPivot.localRotation = Quaternion.identity;
+
+
     }
 
     public Vector2 GetStickEndPosition()
@@ -175,6 +197,7 @@ public class StickController : MonoBehaviour
     private void OnDestroy()
     {
         _growthFinished.Dispose();
+        _growthStarted.Dispose();
         _stickReady.Dispose();
     }
 

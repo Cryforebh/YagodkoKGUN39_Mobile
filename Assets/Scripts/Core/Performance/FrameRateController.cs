@@ -5,6 +5,8 @@ using UnityEngine;
 [DefaultExecutionOrder(10000)]
 public class FrameRateController : MonoBehaviour
 {
+    [SerializeField] private float _timeScale = 1f;
+
     private const int TargetFrameRate = 60;
     private const int InitializationDelayFrames = 3;
 
@@ -19,6 +21,8 @@ public class FrameRateController : MonoBehaviour
     private void Start()
     {
         RequestFrameRateApply();
+
+        Time.timeScale = _timeScale;
     }
 
     private void OnApplicationFocus(bool hasFocus)

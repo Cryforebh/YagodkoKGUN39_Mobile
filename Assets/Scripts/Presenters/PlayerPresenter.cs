@@ -3,29 +3,30 @@ using UniRx;
 using UnityEngine;
 using Zenject;
 
-[RequireComponent(typeof(PlayerAnimation))]
 public class PlayerPresenter : MonoBehaviour
 {
     [SerializeField] private StickController _stickController;
     [SerializeField] private PlayerMovement _playerMovement;
     [SerializeField] private CameraMovement _cameraMovement;
+    [SerializeField] private PlayerAnimation _playerAnimation;
 
     [Inject] private PlatformGenerator _platformGenerator;
     [Inject] private PlatformProgress _platformProgress;
     [Inject] private PlatformAppearance _platformAppearance;
     [Inject] private PlayerEvents _playerEvents;
 
-    private PlayerAnimation _playerAnimation;
     private readonly CompositeDisposable _disposables = new();
 
     public float PlayerOffsetY => transform.localScale.y / 9f;
 
     private void Awake()
     {
-        _playerAnimation = GetComponent<PlayerAnimation>();
-
         _stickController.StickReady
             .Subscribe(_ => CheckLandingAsync().Forget())
+            .AddTo(_disposables);
+
+        _stickController.GrowthStarted
+            .Subscribe(_ => _playerAnimation.PlayFire())
             .AddTo(_disposables);
 
         _stickController.GrowthFinished

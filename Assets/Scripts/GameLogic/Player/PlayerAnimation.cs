@@ -5,34 +5,37 @@ using UnityEngine;
 
 public class PlayerAnimation : MonoBehaviour
 {
+    [SerializeField] private Animator _animatorPlayerVisual;
+
     private static readonly int IsRunningHash = Animator.StringToHash("IsRunning");
     private static readonly int PushHash = Animator.StringToHash("Push");
-
-    private Animator _animator;
+    private static readonly int FireHash = Animator.StringToHash("Fire");
 
     private UniTaskCompletionSource _pushCompletionSource;
 
-    private void Awake()
-    {
-        _animator = GetComponent<Animator>();
-    }
-
     public void PlayIdle()
     {
-        _animator.SetBool(IsRunningHash, false);
+        _animatorPlayerVisual.SetBool(IsRunningHash, false);
     }
 
     public void PlayRun()
     {
-        _animator.SetBool(IsRunningHash, true);
+        _animatorPlayerVisual.SetBool(IsRunningHash, true);
+    }
+
+    public void PlayFire()
+    {
+        _animatorPlayerVisual.SetBool(IsRunningHash, false);
+
+        _animatorPlayerVisual.SetTrigger(FireHash);
     }
 
     public UniTask PlayPushAsync()
     {
         _pushCompletionSource = new UniTaskCompletionSource();
 
-        _animator.SetBool(IsRunningHash, false);
-        _animator.SetTrigger(PushHash);
+        _animatorPlayerVisual.SetBool(IsRunningHash, false);
+        _animatorPlayerVisual.SetTrigger(PushHash);
 
         return _pushCompletionSource.Task;
     }
