@@ -878,10 +878,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f032d4c064dbce6419e8a886d355e604, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _starPrefab: {fileID: 968929044945539801, guid: 45879f1cd0965d9448493ade197253e4,
-    type: 3}
-  _hearthPrefab: {fileID: 4044270229144955968, guid: 9427526c75d54154e9e15f3b11e66e21,
-    type: 3}
   _spawnChance: 0.6
   _bonusCount: 1
   _bonusHeight: 0.6
@@ -21940,6 +21936,7 @@ Transform:
   - {fileID: 1523547080}
   - {fileID: 306751748}
   - {fileID: 126291913}
+  - {fileID: 963370914}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &892399188
@@ -22152,6 +22149,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 922117292}
   m_CullTransparentMesh: 1
+--- !u!1 &963370913
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 963370914}
+  - component: {fileID: 963370915}
+  m_Layer: 0
+  m_Name: BonusPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &963370914
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963370913}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1941210325}
+  m_Father: {fileID: 891774441}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &963370915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963370913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09bbfe912aaf5304b8e6f7984fcb66f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _bonusPrefabs:
+  - {fileID: 4044270229144955968, guid: 9427526c75d54154e9e15f3b11e66e21, type: 3}
+  - {fileID: 968929044945539801, guid: 45879f1cd0965d9448493ade197253e4, type: 3}
+  _poolRoot: {fileID: 1941210325}
+  _instancesPerPrefab: 3
 --- !u!1 &985271598
 GameObject:
   m_ObjectHideFlags: 0
@@ -29694,6 +29741,37 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1941210324
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1941210325}
+  m_Layer: 0
+  m_Name: InactiveBonuses
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1941210325
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941210324}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 963370914}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1951922374 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3855823535585934290, guid: 66e5261a4caf3744394a4a100702d80a,

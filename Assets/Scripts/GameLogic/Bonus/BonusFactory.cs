@@ -3,26 +3,25 @@ using UnityEngine;
 
 public class BonusFactory
 {
+    private readonly BonusPool _bonusPool;
     private readonly IMessageBroker _messageBroker;
 
-    public BonusFactory(IMessageBroker messageBroker)
+    public BonusFactory(BonusPool bonusPool, IMessageBroker messageBroker)
     {
+        _bonusPool = bonusPool;
         _messageBroker = messageBroker;
     }
 
-    public BonusView Create(
-        BonusView prefab,
-        Vector3 position,
-        Transform parent = null)
+    public BonusView CreateRandom(Vector3 position, Transform parent = null)
     {
-        BonusView bonus = Object.Instantiate(
-            prefab,
-            position,
-            Quaternion.identity,
-            parent);
+        BonusView bonus = _bonusPool.TakeRandom();
 
-        _messageBroker.Publish(
-            new BonusSpawnedMessage(bonus));
+        if (bonus == null)
+            return null;
+
+        bonus.Activate(position, parent);
+
+        _messageBroker.Publish(new BonusSpawnedMessage(bonus));
 
         return bonus;
     }

@@ -5,9 +5,6 @@ using Zenject;
 
 public class BonusGeneratorPresenter : MonoBehaviour
 {
-    [SerializeField] private BonusView _starPrefab;
-    [SerializeField] private BonusView _hearthPrefab;
-
     [SerializeField, Range(0f, 1f)] private float _spawnChance = 0.7f;
     [SerializeField] private int _bonusCount = 3;
     [SerializeField] private float _bonusHeight = 0.35f;
@@ -17,6 +14,7 @@ public class BonusGeneratorPresenter : MonoBehaviour
     [Inject] private PlayerEvents _playerEvents;
     [Inject] private PlatformProgress _platformProgress;
     [Inject] private BonusFactory _bonusFactory;
+    [Inject] private BonusPool _bonusPool;
 
     private readonly List<BonusView> _spawnedBonuses = new();
 
@@ -69,13 +67,10 @@ public class BonusGeneratorPresenter : MonoBehaviour
                 y,
                 0f);
 
-            BonusView prefab = Random.value < 0.5f
-                ? _starPrefab
-                : _hearthPrefab;
+            BonusView bonus = _bonusFactory.CreateRandom(spawnPosition);
 
-            BonusView bonus = _bonusFactory.Create(prefab, spawnPosition);
-
-            _spawnedBonuses.Add(bonus);
+            if (bonus != null)
+                _spawnedBonuses.Add(bonus);
         }
     }
 
@@ -84,8 +79,9 @@ public class BonusGeneratorPresenter : MonoBehaviour
         foreach (BonusView bonus in _spawnedBonuses)
         {
             if (bonus != null)
-                Destroy(bonus.gameObject);
+                _bonusPool.Return(bonus);
         }
+
         _spawnedBonuses.Clear();
     }
 

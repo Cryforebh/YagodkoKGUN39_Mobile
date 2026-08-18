@@ -9,6 +9,7 @@ public class BonusCollectorPresenter : MonoBehaviour
     [Inject] private IBonusModel _bonusModel;
     [Inject] private IMessageBroker _messageBroker;
     [Inject] private IBonusStorage _bonusStorage;
+    [Inject] private BonusPool _bonusPool;
 
     private readonly List<Bonuses> _currentAttemptBonuses = new();
     private readonly CompositeDisposable _disposables = new();
@@ -55,7 +56,7 @@ public class BonusCollectorPresenter : MonoBehaviour
 
         bonus.Collected -= OnBonusCollected;
 
-        Destroy(bonus.gameObject);
+        _bonusPool.Return(bonus);
 
         if (_isAttemptFailed)
             return;

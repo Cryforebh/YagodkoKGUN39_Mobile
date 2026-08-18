@@ -24,5 +24,8 @@ public class SceneInstaller : MonoInstaller
         Container.Bind<PlatformAppearance>()
             .FromComponentInHierarchy()
             .AsSingle();
+        Container.Bind<BonusPool>()
+            .FromComponentInHierarchy()
+            .AsSingle();
     }
 }

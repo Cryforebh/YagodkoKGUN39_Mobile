@@ -16,4 +16,18 @@ public class BonusView : MonoBehaviour
 
         Collected?.Invoke(this);
     }
+
+    public void Activate(Vector3 position, Transform parent = null)
+    {
+        transform.SetParent(parent);
+        transform.SetPositionAndRotation(position, Quaternion.identity);
+
+        gameObject.SetActive(true);
+    }
+
+    public void Deactivate()
+    {
+        Collected = null;
+        gameObject.SetActive(false);
+    }
 }
