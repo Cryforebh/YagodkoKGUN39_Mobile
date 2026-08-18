@@ -9,4 +9,5 @@ public interface IBonusStorage
     void Save(IBonusModel bonusModel);
     void SaveBest(IBonusModel bonusModel);
     void Clear();
+    void Flush();
 }

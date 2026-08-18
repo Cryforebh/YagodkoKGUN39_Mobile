@@ -43,9 +43,6 @@ public class PlayerPresenter : MonoBehaviour
     {
         PlatformView currentPlatform = _platformProgress.CurrentPlatform;
 
-        Debug.Log($"Player spawn: {currentPlatform.GetLandingPosition(PlayerOffsetY)}");
-        Debug.Log($"Stick spawn: {currentPlatform.StickSpawnPosition}");
-
         transform.position = currentPlatform.GetLandingPosition(PlayerOffsetY);
 
         _stickController.ResetStick(
@@ -59,7 +56,7 @@ public class PlayerPresenter : MonoBehaviour
         if (!_platformProgress.HasNextPlatform)
             return;
 
-        Vector2 stickEnd = _stickController.GetStickEndPosition(); 
+        Vector2 stickEnd = _stickController.GetStickEndPosition();
 
         PlatformView nextPlatform = _platformProgress.NextPlatform;
 
@@ -69,13 +66,10 @@ public class PlayerPresenter : MonoBehaviour
 
         if (!landed)
         {
-            Debug.Log("Неудача!");
             _playerEvents.RaisePlayerFell();
             await MovePlayerToFall();
             return;
         }
-
-        Debug.Log("Стик попал на следующую платформу!");
 
         await MovePlayerToPlatform(nextPlatform);
     }
@@ -112,8 +106,6 @@ public class PlayerPresenter : MonoBehaviour
         _stickController.ResetStick(_platformProgress.CurrentPlatform.StickSpawnPosition);
 
         _playerEvents.RaiseReachedPlatform();
-
-        Debug.Log("Игрок перешел на следующую платформу!");
     }
 
     private async UniTask MovePlayerToFall()
@@ -140,7 +132,6 @@ public class PlayerPresenter : MonoBehaviour
 
         _playerEvents.RaisePlayerFallCompleted();
     }
-
 
     private void OnDestroy()
     {

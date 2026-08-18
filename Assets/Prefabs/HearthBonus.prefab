@@ -180,7 +180,7 @@ GameObject:
   - component: {fileID: 8517700802512944212}
   - component: {fileID: 4044270229144955968}
   - component: {fileID: 6819615905188824660}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: HearthBonus
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -96,7 +96,7 @@ GameObject:
   - component: {fileID: 4296751857356179213}
   - component: {fileID: 968929044945539801}
   - component: {fileID: 185347448220454069}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: StarBonus
   m_TagString: Untagged
   m_Icon: {fileID: 0}

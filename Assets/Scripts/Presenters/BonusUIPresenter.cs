@@ -17,55 +17,41 @@ public class BonusUIPresenter : MonoBehaviour
 
     private void Start()
     {
-        UpdateUI();
-
         _bonusModel.CollectedBonuses
             .ObserveAdd()
-            .Subscribe(OnBonusAdded)
+            .Subscribe(_ => UpdateUI())
             .AddTo(_disposables);
 
         _bonusModel.CollectedBonuses
             .ObserveRemove()
-            .Subscribe(OnBonusRemoved)
+            .Subscribe(_ => UpdateUI())
             .AddTo(_disposables);
-    }
-
-    private void OnBonusAdded(CollectionAddEvent<Bonuses> eventData)
-    {
-        switch (eventData.Value)
-        {
-            case Bonuses.Star:
-                _starCount++;
-                break;
-
-            case Bonuses.Hearth:
-                _hearthCount++;
-                break;
-        }
-
-        UpdateUI();
-    }
-
-    private void OnBonusRemoved(CollectionRemoveEvent<Bonuses> eventData)
-    {
-        switch (eventData.Value)
-        {
-            case Bonuses.Star:
-                _starCount--;
-                break;
-
-            case Bonuses.Hearth:
-                _hearthCount--;
-                break;
-        }
 
         UpdateUI();
     }
 
     private void UpdateUI()
     {
-        _starText.text = _starCount.ToString();
-        _hearthText.text = _hearthCount.ToString();
+        int stars = 0;
+        int hearths = 0;
+
+        foreach (Bonuses bonus
+                 in _bonusModel.CollectedBonuses)
+        {
+            switch (bonus)
+            {
+                case Bonuses.Star:
+                    stars++;
+                    break;
+
+                case Bonuses.Hearth:
+                    hearths++;
+                    break;
+            }
+        }
+
+        _starText.text = stars.ToString();
+        _hearthText.text = hearths.ToString();
     }
 
     private void OnDestroy()

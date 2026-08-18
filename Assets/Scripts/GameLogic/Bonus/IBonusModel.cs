@@ -7,6 +7,4 @@ public interface IBonusModel
     void Add(Bonuses bonus);
 
     void Remove(Bonuses bonus);
-
-    void Clear();
 }

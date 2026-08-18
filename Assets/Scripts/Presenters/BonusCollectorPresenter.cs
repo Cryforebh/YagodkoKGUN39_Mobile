@@ -66,7 +66,6 @@ public class BonusCollectorPresenter : MonoBehaviour
 
     private void ConfirmCurrentAttempt()
     {
-        // Бонусы этго перехода подтверждены и остаются в BonusModel
         _currentAttemptBonuses.Clear();
         _isAttemptFailed = false;
 
@@ -76,7 +75,11 @@ public class BonusCollectorPresenter : MonoBehaviour
     private void CancelCurrentAttempt()
     {
         _isAttemptFailed = true;
+
         RollbackCurrentAttempt();
+
+        _bonusStorage.Save(_bonusModel);
+        _bonusStorage.Flush();
     }
 
     private void RollbackCurrentAttempt()
@@ -85,6 +88,17 @@ public class BonusCollectorPresenter : MonoBehaviour
             _bonusModel.Remove(bonusType);
 
         _currentAttemptBonuses.Clear();
+    }
+
+    private void OnApplicationPause(bool isPaused)
+    {
+        if (isPaused)
+            _bonusStorage.Flush();
+    }
+
+    private void OnApplicationQuit()
+    {
+        _bonusStorage.Flush();
     }
 
     private void OnDestroy()

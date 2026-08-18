@@ -56,9 +56,6 @@ public class BonusGeneratorPresenter : MonoBehaviour
 
         for (int i = 0; i < _bonusCount; i++)
         {
-            //float t = (i + 1f) / (_bonusCount + 1f);
-            //float x = Mathf.Lerp(left, right, t);
-
             float x = Random.Range(
                 left + _bonusEdgeOffset,
                 right - _bonusEdgeOffset);
@@ -76,13 +73,9 @@ public class BonusGeneratorPresenter : MonoBehaviour
                 ? _starPrefab
                 : _hearthPrefab;
 
-            BonusView bonus = _bonusFactory.Create(
-                prefab,
-                spawnPosition);
+            BonusView bonus = _bonusFactory.Create(prefab, spawnPosition);
 
             _spawnedBonuses.Add(bonus);
-
-            Debug.Log($"Бонус {i + 1} создан: {spawnPosition}");
         }
     }
 

@@ -8,12 +8,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float _fallSpeed = 20f;
     [SerializeField] private float _fallDistance = 5f;
 
-    //private Rigidbody2D _body;
     private CancellationToken _cancellationToken;
 
     private void Awake()
     {
-        //_body = GetComponent<Rigidbody2D>();
         _cancellationToken = this.GetCancellationTokenOnDestroy();
     }
 
@@ -37,8 +35,6 @@ public class PlayerMovement : MonoBehaviour
     public async UniTask FallAsync()
     {
         Vector3 targetPosition = transform.position + Vector3.down * _fallDistance;
-
-        //_body.isKinematic = true;
 
         while (Vector3.Distance(transform.position, targetPosition) > 0.01f)
         {

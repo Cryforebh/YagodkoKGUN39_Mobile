@@ -68,6 +68,7 @@ public class GameOverPresenter : MonoBehaviour
 
         _platformScoreStorage.SaveIfBest(currentScore, currentTime);
         _bonusStorage.SaveBest(_bonusModel);
+        _bonusStorage.Flush();
 
         if (_timeResultText)
             _timeResultText.text = $"Time: {_timeModel.Time.Value} sec.";

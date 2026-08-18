@@ -65,8 +65,6 @@ public class PlatformGenerator : MonoBehaviour, IInitializable
 
         Vector3 targetPosition = CalculatePositionAfter(nextPlatform, currentPlatform, cameraRightEdge);
 
-        //PlaceAfter(nextPlatform, _platformProgress.CurrentPlatform);
-
         _platformProgress.SetNextPlatform(nextPlatform);
 
         return new PlatformSpawnData(nextPlatform, targetPosition);

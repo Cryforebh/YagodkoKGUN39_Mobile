@@ -38,9 +38,6 @@ public class PlatformPool : MonoBehaviour
                 _sourcePrefabs.Add(platform, prefab);
             }
         }
-
-        Debug.Log(
-            $"Создано платформ: {_availablePlatforms.Count}");
     }
 
     public PlatformView TakeRandom()

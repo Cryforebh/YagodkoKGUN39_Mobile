@@ -15,9 +15,4 @@ public class BonusModel : IBonusModel
     {
         _collectedBonuses.Remove(bonus);
     }
-
-    public void Clear()
-    {
-        _collectedBonuses.Clear();
-    }
 }
