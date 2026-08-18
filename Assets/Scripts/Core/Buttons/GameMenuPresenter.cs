@@ -24,7 +24,7 @@ public class GameMenuPresenter : MonoBehaviour
 
     private async UniTaskVoid RestartAsync()
     {
-        await _sceneLoader.RestartGame();
+        await _sceneLoader.LoadGame();
     }
 
     private async UniTaskVoid MainMenuAsync()

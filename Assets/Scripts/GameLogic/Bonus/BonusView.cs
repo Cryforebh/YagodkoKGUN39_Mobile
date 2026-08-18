@@ -3,9 +3,9 @@ using UnityEngine;
 
 public class BonusView : MonoBehaviour
 {
-    [SerializeField] private Bonuses _bonusType;
+    [SerializeField] private BonusType _bonusType;
 
-    public Bonuses BonusType => _bonusType;
+    public BonusType BonusType => _bonusType;
 
     public event Action<BonusView> Collected;
 

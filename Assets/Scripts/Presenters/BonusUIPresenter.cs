@@ -1,19 +1,18 @@
 using TMPro;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 public class BonusUIPresenter : MonoBehaviour
 {
     [SerializeField] private TMP_Text _starText;
-    [SerializeField] private TMP_Text _hearthText;
+    [FormerlySerializedAs("_hearthText")]
+    [SerializeField] private TMP_Text _heartText;
 
     [Inject] private IBonusModel _bonusModel;
 
     private readonly CompositeDisposable _disposables = new();
-
-    private int _starCount;
-    private int _hearthCount;
 
     private void Start()
     {
@@ -33,25 +32,25 @@ public class BonusUIPresenter : MonoBehaviour
     private void UpdateUI()
     {
         int stars = 0;
-        int hearths = 0;
+        int hearts = 0;
 
-        foreach (Bonuses bonus
+        foreach (BonusType bonus
                  in _bonusModel.CollectedBonuses)
         {
             switch (bonus)
             {
-                case Bonuses.Star:
+                case BonusType.Star:
                     stars++;
                     break;
 
-                case Bonuses.Hearth:
-                    hearths++;
+                case BonusType.Heart:
+                    hearts++;
                     break;
             }
         }
 
         _starText.text = stars.ToString();
-        _hearthText.text = hearths.ToString();
+        _heartText.text = hearts.ToString();
     }
 
     private void OnDestroy()

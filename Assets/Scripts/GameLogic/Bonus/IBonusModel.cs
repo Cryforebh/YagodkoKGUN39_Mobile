@@ -2,9 +2,9 @@ using UniRx;
 
 public interface IBonusModel
 {
-    IReadOnlyReactiveCollection<Bonuses> CollectedBonuses { get; }
+    IReadOnlyReactiveCollection<BonusType> CollectedBonuses { get; }
 
-    void Add(Bonuses bonus);
+    void Add(BonusType bonus);
 
-    void Remove(Bonuses bonus);
+    void Remove(BonusType bonus);
 }

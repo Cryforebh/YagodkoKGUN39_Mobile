@@ -11,7 +11,7 @@ public class BonusCollectorPresenter : MonoBehaviour
     [Inject] private IBonusStorage _bonusStorage;
     [Inject] private BonusPool _bonusPool;
 
-    private readonly List<Bonuses> _currentAttemptBonuses = new();
+    private readonly List<BonusType> _currentAttemptBonuses = new();
     private readonly CompositeDisposable _disposables = new();
 
     private bool _isAttemptFailed;
@@ -52,7 +52,7 @@ public class BonusCollectorPresenter : MonoBehaviour
         if (bonus == null)
             return;
 
-        Bonuses bonusType = bonus.BonusType;
+        BonusType bonusType = bonus.BonusType;
 
         bonus.Collected -= OnBonusCollected;
 
@@ -85,7 +85,7 @@ public class BonusCollectorPresenter : MonoBehaviour
 
     private void RollbackCurrentAttempt()
     {
-        foreach (Bonuses bonusType in _currentAttemptBonuses)
+        foreach (BonusType bonusType in _currentAttemptBonuses)
             _bonusModel.Remove(bonusType);
 
         _currentAttemptBonuses.Clear();

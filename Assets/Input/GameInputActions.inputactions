@@ -1,0 +1,34 @@
+{
+    "name": "GameInputActions",
+    "maps": [
+        {
+            "name": "Gameplay",
+            "id": "fce1089f-d253-4352-beeb-4fed6b4b5d91",
+            "actions": [
+                {
+                    "name": "GrowStick",
+                    "type": "Button",
+                    "id": "d0b2983e-6e65-4c85-8b36-722a30a0a8f0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "c44210b4-05a1-44b2-92ce-5d32e3a17c6b",
+                    "path": "<Pointer>/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "GrowStick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

@@ -25,7 +25,7 @@ public class PlatformUIPresenter : MonoBehaviour
 
     private void UpdatePlatformCount()
     {
-        _platformCountText.text = $"P: {_platformProgress.PassedPlatforms.ToString()}";
+        _platformCountText.text = $"PL: {_platformProgress.PassedPlatforms.ToString()}";
     }
 
     private void OnDestroy()

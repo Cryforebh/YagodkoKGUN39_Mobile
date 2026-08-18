@@ -8,12 +8,10 @@ using Zenject;
     )]
 public class ProjectInstaller : ScriptableObjectInstaller
 {
-    private SceneLoader _sceneLoader = new SceneLoader();
-
     public override void InstallBindings()
     {
-        Container.Bind<ISceneLoader>().To<SceneLoader>()
-            .FromInstance(_sceneLoader)
+        Container.Bind<ISceneLoader>()
+            .To<SceneLoader>()
             .AsSingle();
         Container.BindInterfacesAndSelfTo<MessageBroker>()
             .AsSingle();

@@ -4,5 +4,4 @@ public interface ISceneLoader
 {
     UniTask LoadMain();
     UniTask LoadGame();
-    UniTask RestartGame();
 }

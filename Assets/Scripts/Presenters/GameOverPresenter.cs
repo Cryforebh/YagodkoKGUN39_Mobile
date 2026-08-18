@@ -1,10 +1,9 @@
 using Cysharp.Threading.Tasks;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using TMPro;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 public class GameOverPresenter : MonoBehaviour
@@ -17,7 +16,8 @@ public class GameOverPresenter : MonoBehaviour
     [SerializeField] private TMP_Text _timeResultText;
     [SerializeField] private TMP_Text _platformResultText;
     [SerializeField] private TMP_Text _bestPlatformResultText;
-    [SerializeField] private TMP_Text _hearthResultText;
+    [FormerlySerializedAs("_hearthResultText")]
+    [SerializeField] private TMP_Text _heartResultText;
     [SerializeField] private TMP_Text _starResultText;
 
     [Header("Animation")]
@@ -74,7 +74,7 @@ public class GameOverPresenter : MonoBehaviour
             _timeResultText.text = $"Time: {_timeModel.Time.Value} sec.";
 
         _starResultText.text = _bonusStorage.StarCount.ToString();
-        _hearthResultText.text = _bonusStorage.HearthCount.ToString();
+        _heartResultText.text = _bonusStorage.HeartCount.ToString();
 
         _platformResultText.text = $"Platforms: {_platformProgress.PassedPlatforms}";
 

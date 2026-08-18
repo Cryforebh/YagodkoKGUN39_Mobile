@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 public class MainBestResultPresenter : MonoBehaviour
@@ -7,7 +8,8 @@ public class MainBestResultPresenter : MonoBehaviour
     [SerializeField] private TMP_Text _platformText;
     [SerializeField] private TMP_Text _timeText;
     [SerializeField] private TMP_Text _starText;
-    [SerializeField] private TMP_Text _hearthText;
+    [FormerlySerializedAs("_hearthText")]
+    [SerializeField] private TMP_Text _heartText;
 
     [Inject] private IPlatformScoreStorage _scoreStorage;
     [Inject] private IBonusStorage _bonusStorage;
@@ -19,13 +21,13 @@ public class MainBestResultPresenter : MonoBehaviour
 
     private void UpdateUI()
     {
-        _platformText.text = $"P: {_scoreStorage.BestScore}";
+        _platformText.text = $"PL: {_scoreStorage.BestScore}";
 
         if (_timeText)
             _timeText.text = $"T: {_scoreStorage.BestTime} sec.";
 
         _starText.text = _bonusStorage.BestStarCount.ToString();
 
-        _hearthText.text = _bonusStorage.BestHearthCount.ToString();
+        _heartText.text = _bonusStorage.BestHeartCount.ToString();
     }
 }

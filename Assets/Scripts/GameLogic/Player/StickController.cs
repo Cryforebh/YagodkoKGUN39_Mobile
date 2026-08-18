@@ -51,15 +51,9 @@ public class StickController : MonoBehaviour
 
         if (_isRotating)
             RotateStick();
-
-        if (Input.GetMouseButtonDown(0))
-            StartGrowing();
-
-        if (Input.GetMouseButtonUp(0))
-            StopGrowing();
     }
 
-    private void StartGrowing()
+    public void BeginGrowth()
     {
         if (!_canGrow)
             return;
@@ -69,7 +63,7 @@ public class StickController : MonoBehaviour
         _growthStarted.OnNext(Unit.Default);
     }
 
-    private void StopGrowing()
+    public void EndGrowth()
     {
         if (!_isGrowing)
             return;

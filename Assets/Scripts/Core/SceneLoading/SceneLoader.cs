@@ -3,18 +3,16 @@ using UnityEngine.SceneManagement;
 
 public class SceneLoader : ISceneLoader
 {
+    private const string MainSceneName = "Main";
+    private const string GameSceneName = "Game";
+
     public async UniTask LoadMain()
     {
-        await SceneManager.LoadSceneAsync("Main");
+        await SceneManager.LoadSceneAsync(MainSceneName);
     }
 
     public async UniTask LoadGame()
     {
-        await SceneManager.LoadSceneAsync("Game");
-    }
-
-    public async UniTask RestartGame()
-    {
-        await SceneManager.LoadSceneAsync("Game");
+        await SceneManager.LoadSceneAsync(GameSceneName);
     }
 }

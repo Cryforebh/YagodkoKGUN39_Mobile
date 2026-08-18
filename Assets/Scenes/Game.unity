@@ -231,7 +231,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -90.5, y: -23.06012}
+  m_AnchoredPosition: {x: -143, y: -22.557}
   m_SizeDelta: {x: 347, y: 100}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1 &76269139
@@ -834,55 +834,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!1 &306751747
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 306751748}
-  - component: {fileID: 306751749}
-  m_Layer: 0
-  m_Name: BonusGenerator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &306751748
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 306751747}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 891774441}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &306751749
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 306751747}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f032d4c064dbce6419e8a886d355e604, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _spawnChance: 0.6
-  _bonusCount: 1
-  _bonusHeight: 0.6
-  _bonusEdgeOffset: 0.5
-  _minGapWidth: 1
 --- !u!1 &330543242
 GameObject:
   m_ObjectHideFlags: 0
@@ -1126,7 +1077,7 @@ MonoBehaviour:
   _timeResultText: {fileID: 0}
   _platformResultText: {fileID: 1282574048}
   _bestPlatformResultText: {fileID: 603314238}
-  _hearthResultText: {fileID: 1672962076}
+  _heartResultText: {fileID: 1672962076}
   _starResultText: {fileID: 845964875}
   _animationDuration: 0.5
   _hiddenOffset: 100
@@ -1265,7 +1216,7 @@ GameObject:
   - component: {fileID: 569629910}
   - component: {fileID: 569629909}
   m_Layer: 5
-  m_Name: HearthImage
+  m_Name: HeartImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6592,7 +6543,7 @@ GameObject:
   - component: {fileID: 665408743}
   - component: {fileID: 665408745}
   m_Layer: 5
-  m_Name: Hearth
+  m_Name: Heart
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6926,7 +6877,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'P: 01'
+  m_text: 'PL: 01'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -7013,7 +6964,7 @@ GameObject:
   m_Component:
   - component: {fileID: 731436648}
   - component: {fileID: 731436647}
-  - component: {fileID: 731436646}
+  - component: {fileID: 731436649}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -7021,26 +6972,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &731436646
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 731436645}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_RepeatDelay: 0.5
-  m_ForceModuleActive: 0
 --- !u!114 &731436647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7071,6 +7002,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &731436649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 731436645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
+  m_MoveRepeatDelay: 0.5
+  m_MoveRepeatRate: 0.1
+  m_XRTrackingOrigin: {fileID: 0}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: 0bf915eec029fa34aa3869e82cda9dbf,
+    type: 3}
+  m_PointAction: {fileID: 0}
+  m_MoveAction: {fileID: 0}
+  m_SubmitAction: {fileID: 0}
+  m_CancelAction: {fileID: 0}
+  m_LeftClickAction: {fileID: 0}
+  m_MiddleClickAction: {fileID: 0}
+  m_RightClickAction: {fileID: 0}
+  m_ScrollWheelAction: {fileID: 0}
+  m_TrackedDevicePositionAction: {fileID: 0}
+  m_TrackedDeviceOrientationAction: {fileID: 0}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
 --- !u!1 &741977552
 GameObject:
   m_ObjectHideFlags: 0
@@ -21933,10 +21895,9 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1951922374}
-  - {fileID: 1523547080}
-  - {fileID: 306751748}
   - {fileID: 126291913}
   - {fileID: 963370914}
+  - {fileID: 1523547080}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &892399188
@@ -22027,7 +21988,7 @@ GameObject:
   - component: {fileID: 922117295}
   - component: {fileID: 922117294}
   m_Layer: 5
-  m_Name: HearthText
+  m_Name: HeartText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22159,8 +22120,9 @@ GameObject:
   m_Component:
   - component: {fileID: 963370914}
   - component: {fileID: 963370915}
+  - component: {fileID: 963370916}
   m_Layer: 0
-  m_Name: BonusPool
+  m_Name: BonusSystem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22174,7 +22136,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963370913}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -22199,6 +22161,23 @@ MonoBehaviour:
   - {fileID: 968929044945539801, guid: 45879f1cd0965d9448493ade197253e4, type: 3}
   _poolRoot: {fileID: 1941210325}
   _instancesPerPrefab: 3
+--- !u!114 &963370916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963370913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f032d4c064dbce6419e8a886d355e604, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _spawnChance: 0.6
+  _bonusCount: 1
+  _bonusHeight: 0.6
+  _bonusEdgeOffset: 0.5
+  _minGapWidth: 1
 --- !u!1 &985271598
 GameObject:
   m_ObjectHideFlags: 0
@@ -23703,7 +23682,7 @@ GameObject:
   - component: {fileID: 1672962077}
   - component: {fileID: 1672962076}
   m_Layer: 5
-  m_Name: HearthText
+  m_Name: HeartText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24660,7 +24639,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _starText: {fileID: 1427440115}
-  _hearthText: {fileID: 922117294}
+  _heartText: {fileID: 922117294}
 --- !u!1 &1885122919
 GameObject:
   m_ObjectHideFlags: 0
@@ -29790,7 +29769,7 @@ GameObject:
   - component: {fileID: 1963682281}
   - component: {fileID: 1963682280}
   m_Layer: 5
-  m_Name: HearthImage
+  m_Name: HeartImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29864,7 +29843,7 @@ GameObject:
   - component: {fileID: 2005485952}
   - component: {fileID: 2005485953}
   m_Layer: 5
-  m_Name: Hearth
+  m_Name: Heart
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

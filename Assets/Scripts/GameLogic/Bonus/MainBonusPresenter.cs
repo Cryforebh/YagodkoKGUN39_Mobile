@@ -17,7 +17,7 @@ public class MainBonusPresenter : MonoBehaviour
     private void UpdateUI()
     {
         int starCount = _bonusStorage.StarCount;
-        int hearthCount = _bonusStorage.HearthCount;
+        int hearthCount = _bonusStorage.HeartCount;
 
         _starText.text = $"{starCount}";
         _hearthText.text = $"{hearthCount}";

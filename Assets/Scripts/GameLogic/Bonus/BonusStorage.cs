@@ -3,38 +3,38 @@ using UnityEngine;
 public class BonusStorage : IBonusStorage
 {
     private const string StarKey = "LastSession_Stars";
-    private const string HearthKey = "LastSession_Hearths";
+    private const string HeartKey = "LastSession_Hearths";
     private const string BestStarKey = "BestBonus_Stars";
-    private const string BestHearthKey = "BestBonus_Hearths";
+    private const string BestHeartKey = "BestBonus_Hearths";
 
     public int StarCount => PlayerPrefs.GetInt(StarKey, 0);
-    public int HearthCount => PlayerPrefs.GetInt(HearthKey, 0);
+    public int HeartCount => PlayerPrefs.GetInt(HeartKey, 0);
     public int BestStarCount => PlayerPrefs.GetInt(BestStarKey, 0);
-    public int BestHearthCount => PlayerPrefs.GetInt(BestHearthKey, 0);
+    public int BestHeartCount => PlayerPrefs.GetInt(BestHeartKey, 0);
 
     public void Save(IBonusModel bonusModel)
     {
         CountBonuses(bonusModel, out int stars, out int hearths);
 
         PlayerPrefs.SetInt(StarKey, stars);
-        PlayerPrefs.SetInt(HearthKey, hearths);
+        PlayerPrefs.SetInt(HeartKey, hearths);
     }
 
     public void SaveBest(IBonusModel bonusModel)
     {
-        CountBonuses(bonusModel, out int stars, out int hearths);
+        CountBonuses(bonusModel, out int stars, out int hearts);
 
         if (stars > BestStarCount)
             PlayerPrefs.SetInt(BestStarKey, stars);
 
-        if (hearths > BestHearthCount)
-            PlayerPrefs.SetInt(BestHearthKey, hearths);
+        if (hearts > BestHeartCount)
+            PlayerPrefs.SetInt(BestHeartKey, hearts);
     }
 
     public void Clear()
     {
         PlayerPrefs.SetInt(StarKey, 0);
-        PlayerPrefs.SetInt(HearthKey, 0);
+        PlayerPrefs.SetInt(HeartKey, 0);
     }
 
     public void Flush()
@@ -42,21 +42,21 @@ public class BonusStorage : IBonusStorage
         PlayerPrefs.Save();
     }
 
-    private static void CountBonuses(IBonusModel bonusModel, out int stars, out int hearths)
+    private static void CountBonuses(IBonusModel bonusModel, out int stars, out int hearts)
     {
         stars = 0;
-        hearths = 0;
+        hearts = 0;
 
-        foreach (Bonuses bonus in bonusModel.CollectedBonuses)
+        foreach (BonusType bonus in bonusModel.CollectedBonuses)
         {
             switch (bonus)
             {
-                case Bonuses.Star:
+                case BonusType.Star:
                     stars++;
                     break;
 
-                case Bonuses.Hearth:
-                    hearths++;
+                case BonusType.Heart:
+                    hearts++;
                     break;
             }
         }
