@@ -7,6 +7,8 @@ public class PlayerLaserPresenter : MonoBehaviour
     [SerializeField] private StickController _stickController;
     [SerializeField] private Transform _laserOrigin;
     [SerializeField] private Transform _stickEndTarget;
+    [SerializeField] private ParticleSystem _stickSparks;
+    [SerializeField] private ParticleSystem _smoke;
 
     private LineRenderer _lineRenderer;
 
@@ -52,6 +54,11 @@ public class PlayerLaserPresenter : MonoBehaviour
         _isActive = true;
         _lineRenderer.enabled = true;
 
+        _stickSparks.Clear(true);
+        _stickSparks.Play(true);
+        _smoke.Clear(true);
+        _smoke.Play(true);
+
         UpdateLaserImmediately();
     }
 
@@ -59,6 +66,9 @@ public class PlayerLaserPresenter : MonoBehaviour
     {
         _isActive = false;
         _lineRenderer.enabled = false;
+
+        _stickSparks.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        _smoke.Stop(true, ParticleSystemStopBehavior.StopEmitting);
     }
 
     private void UpdateLaserImmediately()

@@ -9,6 +9,7 @@ public class PlayerPresenter : MonoBehaviour
     [SerializeField] private PlayerMovement _playerMovement;
     [SerializeField] private CameraMovement _cameraMovement;
     [SerializeField] private PlayerAnimation _playerAnimation;
+    [SerializeField] private RobotAudio _robotAudio;
 
     [Inject] private PlatformGenerator _platformGenerator;
     [Inject] private PlatformProgress _platformProgress;
@@ -26,11 +27,19 @@ public class PlayerPresenter : MonoBehaviour
             .AddTo(_disposables);
 
         _stickController.GrowthStarted
-            .Subscribe(_ => _playerAnimation.PlayFire())
+            .Subscribe(_ =>
+            {
+                _playerAnimation.PlayFire();
+                _robotAudio.StartCreateStick();
+            })
             .AddTo(_disposables);
 
         _stickController.GrowthFinished
-            .Subscribe(_ => PlayPushAndDropStickAsync().Forget())
+            .Subscribe(_ =>
+            {
+                _robotAudio.StopCreateStick();
+                PlayPushAndDropStickAsync().Forget();
+            })
             .AddTo(_disposables);
     }
 
@@ -86,10 +95,12 @@ public class PlayerPresenter : MonoBehaviour
         Vector3 targetPosition = platform.GetLandingPosition(PlayerOffsetY);
 
         _playerAnimation.PlayRun();
+        _robotAudio.StartMotor();
 
         await _playerMovement.MoveTo(targetPosition);
 
         _playerAnimation.PlayIdle();
+        _robotAudio.StopMotor();
 
         _platformProgress.MoveToNextPlatform();
 
@@ -118,9 +129,11 @@ public class PlayerPresenter : MonoBehaviour
             transform.position.z);
 
         _playerAnimation.PlayRun();
+        _robotAudio.StartMotor();
 
         await _playerMovement.MoveTo(fallStartPosition);
 
+        _robotAudio.StopMotor();
         _playerAnimation.PlayIdle();
 
         _playerEvents.RaisePlayerFallStarted();

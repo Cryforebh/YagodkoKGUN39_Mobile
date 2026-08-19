@@ -13,6 +13,9 @@ public class ProjectInstaller : ScriptableObjectInstaller
         Container.Bind<ISceneLoader>()
             .To<SceneLoader>()
             .AsSingle();
+        Container.Bind<SceneTransitionView>()
+            .FromComponentInHierarchy()
+            .AsSingle();
         Container.BindInterfacesAndSelfTo<MessageBroker>()
             .AsSingle();
         Container.Bind<IBonusStorage>()
@@ -20,6 +23,10 @@ public class ProjectInstaller : ScriptableObjectInstaller
             .AsSingle();
         Container.Bind<IPlatformScoreStorage>()
             .To<PlatformScoreStorage>()
+            .AsSingle();
+
+        Container.Bind<SfxPlayer>()
+            .FromComponentInHierarchy()
             .AsSingle();
     }
 }
