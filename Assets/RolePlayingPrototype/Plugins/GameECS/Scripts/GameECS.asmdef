@@ -1,0 +1,16 @@
+{
+    "name": "GameECS",
+    "rootNamespace": "",
+    "references": [
+        "GUID:eb6bc228e19b34302a6955a0a72b8ab5"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
