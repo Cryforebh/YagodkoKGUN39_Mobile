@@ -574,7 +574,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 3231fade9e25b334dbc0dc1c691a8716, type: 3}
   - {fileID: 8300000, guid: 0a891d2639ea20d4380c5fb2611ed80c, type: 3}
   - {fileID: 8300000, guid: 48ab2f23a74e63f41b5462daea5a2ce4, type: 3}
-  - {fileID: 8300000, guid: 1b7801fc2c77c77408f715e160202a0e, type: 3}
   - {fileID: 8300000, guid: cb6901f3a3cb6724c93ea15b2d57ee3d, type: 3}
   _atmosphereSource: {fileID: 3807801403694789351}
   _atmosphereClip: {fileID: 8300000, guid: 2a8ec981a2659164aa496b499e3a2655, type: 3}
