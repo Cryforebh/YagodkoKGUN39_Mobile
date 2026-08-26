@@ -12,6 +12,9 @@ namespace Game.GameEngine.Ecs
         public override void Install(EcsWorld world)
         {
             world.DeclareComponent<TeamComponent>();
+            world.DeclareComponent<SelectedComponent>();
+            world.DeclareComponent<VisionComponent>();
+            world.DeclareSystem<EnemyDetectionSystem>();
         }
     }
 }

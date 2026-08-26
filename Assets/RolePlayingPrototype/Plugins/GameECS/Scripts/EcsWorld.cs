@@ -7,29 +7,30 @@ namespace GameECS
 {
     public sealed class EcsWorld
     {
-        private readonly Dictionary<Type, IEcsPool> componentPools = new();
-        private readonly Dictionary<Type, IEcsEmitter> eventEmitters = new();
+        private readonly Dictionary<Type, IEcsPool> _componentPools = new();
+        private readonly Dictionary<Type, IEcsEmitter> _eventEmitters = new();
 
-        private readonly List<IEcsSystem> allSystems = new();
-        private readonly List<IEcsUpdate> updateSystems = new();
-        private readonly List<IEcsFixedUpdate> fixedUpdateSystems = new();
-        private readonly List<IEcsLateUpdate> lateUpdateSystems = new();
+        private readonly List<IEcsSystem> _allSystems = new();
+        private readonly List<IEcsUpdate> _updateSystems = new();
+        private readonly List<IEcsFixedUpdate> _fixedUpdateSystems = new();
+        private readonly List<IEcsLateUpdate> _lateUpdateSystems = new();
 
-        private readonly List<bool> entities = new();
-        private readonly List<int> cache = new();
+        private readonly List<bool> _entities = new();
+        private readonly List<uint> _generations = new();
+        private readonly List<EntityHandle> _cache = new();
 
-        private readonly List<object> externalServices = new();
-        private readonly IEcsEventSink eventSink;
-        private Action<object> externalInjector;
+        private readonly List<object> _externalServices = new();
+        private readonly IEcsEventSink _eventSink;
+        private Action<object> _externalInjector;
 
         public EcsWorld(IEcsEventSink eventSink = null)
         {
-            this.eventSink = eventSink;
+            _eventSink = eventSink;
         }
 
         public void SetExternalInjector(Action<object> injector)
         {
-            this.externalInjector = injector;
+            _externalInjector = injector;
         }
 
         #region Entities
@@ -37,48 +38,97 @@ namespace GameECS
         public int CreateEntity()
         {
             var id = 0;
-            var count = this.entities.Count;
+            var count = _entities.Count;
 
             for (; id < count; id++)
             {
-                if (!this.entities[id])
+                if (!_entities[id])
                 {
-                    this.entities[id] = true;
-                    this.eventSink?.Publish(id, new EntityCreatedEvent());
+                    _entities[id] = true;
+                    _generations[id] = NextGeneration(_generations[id]);
+                    _eventSink?.Publish(id, new EntityCreatedEvent());
                     return id;
                 }
             }
 
             id = count;
-            this.entities.Add(true);
+            _entities.Add(true);
+            _generations.Add(1);
 
-            foreach (var pool in this.componentPools.Values)
+            foreach (var pool in _componentPools.Values)
             {
                 pool.AllocComponent();
             }
 
-            this.eventSink?.Publish(id, new EntityCreatedEvent());
+            _eventSink?.Publish(id, new EntityCreatedEvent());
             return id;
+        }
+
+        public EntityHandle GetEntityHandle(int entity)
+        {
+            if (!this.IsEntityExists(entity))
+            {
+                return EntityHandle.Invalid;
+            }
+
+            return new EntityHandle(entity, _generations[entity]);
         }
 
         public bool IsEntityExists(int entity)
         {
-            if (entity < 0 || entity >= this.entities.Count)
+            if (entity < 0 || entity >= _entities.Count)
             {
                 return false;
             }
 
-            return this.entities[entity];
+            return _entities[entity];
+        }
+
+        public bool IsEntityExists(EntityHandle entity)
+        {
+            return this.IsEntityExists(entity.Id) && _generations[entity.Id] == entity.Generation;
+        }
+
+        public void GetActiveEntities(List<EntityHandle> result)
+        {
+            result.Clear();
+            for (var id = 0; id < _entities.Count; id++)
+            {
+                if (_entities[id])
+                {
+                    result.Add(this.GetEntityHandle(id));
+                }
+            }
+        }
+
+        public void DestroyEntity(EntityHandle entity)
+        {
+            if (!this.IsEntityExists(entity))
+            {
+                return;
+            }
+
+            this.DestroyEntity(entity.Id);
         }
 
         public void DestroyEntity(int entity)
         {
-            this.eventSink?.Publish(entity, new EntityDestroyedEvent());
-            this.entities[entity] = false;
+            if (!this.IsEntityExists(entity))
+            {
+                return;
+            }
 
-            foreach (var componentPool in this.componentPools.Values)
+            _eventSink?.Publish(entity, new EntityDestroyedEvent());
+            _entities[entity] = false;
+
+            foreach (var componentPool in _componentPools.Values)
             {
                 componentPool.RemoveComponent(entity);
+            }
+
+            foreach (var eventEmitter in _eventEmitters.Values)
+            {
+                eventEmitter.RemoveEntity(entity);
             }
         }
 
@@ -88,7 +138,7 @@ namespace GameECS
 
         public ref T GetComponent<T>(int entity) where T : struct
         {
-            if (!this.componentPools.TryGetValue(typeof(T), out var componentPool))
+            if (!_componentPools.TryGetValue(typeof(T), out var componentPool))
             {
                 throw new Exception($"Component pool of type {typeof(T).Name} is not found!");
             }
@@ -99,7 +149,7 @@ namespace GameECS
 
         public void SetComponent<T>(int entity, ref T component) where T : struct
         {
-            if (!this.componentPools.TryGetValue(typeof(T), out var componentPool))
+            if (!_componentPools.TryGetValue(typeof(T), out var componentPool))
             {
                 throw new Exception($"Component pool of type {typeof(T).Name} is not found!");
             }
@@ -110,7 +160,7 @@ namespace GameECS
 
         public void RemoveComponent<T>(int entity) where T : struct
         {
-            if (!this.componentPools.TryGetValue(typeof(T), out var componentPool))
+            if (!_componentPools.TryGetValue(typeof(T), out var componentPool))
             {
                 throw new Exception($"Component pool of type {typeof(T).Name} is not found!");
             }
@@ -120,7 +170,7 @@ namespace GameECS
 
         public bool HasComponent<T>(int entity) where T : struct
         {
-            if (!this.componentPools.TryGetValue(typeof(T), out var componentPool))
+            if (!_componentPools.TryGetValue(typeof(T), out var componentPool))
             {
                 throw new Exception($"Component pool of type {typeof(T).Name} is not found!");
             }
@@ -130,20 +180,20 @@ namespace GameECS
 
         internal object GetRawComponent(int entity, Type type)
         {
-            var componentPool = this.componentPools[type];
+            var componentPool = _componentPools[type];
             return componentPool.GetRawComponent(entity);
         }
 
         internal void SetRawComponent(int entity, object data)
         {
-            var componentPool = this.componentPools[data.GetType()];
+            var componentPool = _componentPools[data.GetType()];
             componentPool.SetRawComponent(entity, data);
         }
 
         public List<object> GetRawComponents(int entityId)
         {
             var result = new List<object>();
-            foreach (var pool in this.componentPools.Values)
+            foreach (var pool in _componentPools.Values)
             {
                 if (pool.HasComponent(entityId))
                 {
@@ -157,7 +207,7 @@ namespace GameECS
 
         public EcsPool<T> GetPool<T>() where T : struct
         {
-            if (!this.componentPools.TryGetValue(typeof(T), out var componentPool))
+            if (!_componentPools.TryGetValue(typeof(T), out var componentPool))
             {
                 throw new Exception($"Component pool of type {typeof(T).Name} is not found!");
             }
@@ -171,10 +221,10 @@ namespace GameECS
 
         public void SendEvent<T>(int entity, T @event) where T : struct
         {
-            if (!this.eventEmitters.TryGetValue(typeof(T), out var emitter))
+            if (!_eventEmitters.TryGetValue(typeof(T), out var emitter))
             {
-                emitter = new EcsEmitter<T>(this.eventSink);
-                this.eventEmitters.Add(typeof(T), emitter);
+                emitter = new EcsEmitter<T>(_eventSink);
+                _eventEmitters.Add(typeof(T), emitter);
             }
 
             var tEmitter = (EcsEmitter<T>) emitter;
@@ -183,7 +233,7 @@ namespace GameECS
 
         public EcsEmitter<T> GetEmitter<T>() where T : struct
         {
-            if (!this.eventEmitters.TryGetValue(typeof(T), out var componentPool))
+            if (!_eventEmitters.TryGetValue(typeof(T), out var componentPool))
             {
                 throw new Exception($"Component pool of type {typeof(T).Name} is not found!");
             }
@@ -197,75 +247,84 @@ namespace GameECS
 
         public void Update()
         {
-            this.cache.Clear();
-            for (int id = 0, count = this.entities.Count; id < count; id++)
+            _cache.Clear();
+            for (int id = 0, count = _entities.Count; id < count; id++)
             {
-                if (this.entities[id])
+                if (_entities[id])
                 {
-                    this.cache.Add(id);
+                    _cache.Add(this.GetEntityHandle(id));
                 }
             }
 
-            var entityCount = this.cache.Count;
+            var entityCount = _cache.Count;
 
-            for (int i = 0, count = this.updateSystems.Count; i < count; i++)
+            for (int i = 0, count = _updateSystems.Count; i < count; i++)
             {
-                var system = this.updateSystems[i];
+                var system = _updateSystems[i];
 
                 for (var e = 0; e < entityCount; e++)
                 {
-                    var id = this.cache[e];
-                    system.Update(id);
+                    var entity = _cache[e];
+                    if (this.IsEntityExists(entity))
+                    {
+                        system.Update(entity.Id);
+                    }
                 }
             }
         }
 
         public void FixedUpdate()
         {
-            this.cache.Clear();
-            for (int id = 0, count = this.entities.Count; id < count; id++)
+            _cache.Clear();
+            for (int id = 0, count = _entities.Count; id < count; id++)
             {
-                if (this.entities[id])
+                if (_entities[id])
                 {
-                    this.cache.Add(id);
+                    _cache.Add(this.GetEntityHandle(id));
                 }
             }
 
-            var entityCount = this.cache.Count;
+            var entityCount = _cache.Count;
 
-            for (int i = 0, count = this.fixedUpdateSystems.Count; i < count; i++)
+            for (int i = 0, count = _fixedUpdateSystems.Count; i < count; i++)
             {
-                var system = this.fixedUpdateSystems[i];
+                var system = _fixedUpdateSystems[i];
 
                 for (var e = 0; e < entityCount; e++)
                 {
-                    var id = this.cache[e];
-                    system.FixedUpdate(id);
+                    var entity = _cache[e];
+                    if (this.IsEntityExists(entity))
+                    {
+                        system.FixedUpdate(entity.Id);
+                    }
                 }
             }
         }
 
         public void LateUpdate()
         {
-            this.cache.Clear();
-            for (int id = 0, count = this.entities.Count; id < count; id++)
+            _cache.Clear();
+            for (int id = 0, count = _entities.Count; id < count; id++)
             {
-                if (this.entities[id])
+                if (_entities[id])
                 {
-                    this.cache.Add(id);
+                    _cache.Add(this.GetEntityHandle(id));
                 }
             }
 
-            var entityCount = this.cache.Count;
+            var entityCount = _cache.Count;
 
-            for (int i = 0, count = this.lateUpdateSystems.Count; i < count; i++)
+            for (int i = 0, count = _lateUpdateSystems.Count; i < count; i++)
             {
-                var system = this.lateUpdateSystems[i];
+                var system = _lateUpdateSystems[i];
 
                 for (var e = 0; e < entityCount; e++)
                 {
-                    var id = this.cache[e];
-                    system.LateUpdate(id);
+                    var entity = _cache[e];
+                    if (this.IsEntityExists(entity))
+                    {
+                        system.LateUpdate(entity.Id);
+                    }
                 }
             }
         }
@@ -277,33 +336,33 @@ namespace GameECS
         public void DeclareComponent<T>() where T : struct
         {
             var pool = new EcsPool<T>();
-            this.componentPools.Add(typeof(T), pool);
+            _componentPools.Add(typeof(T), pool);
         }
 
         public void DeclareSystem<T>() where T : IEcsSystem, new()
         {
             var system = new T();
-            this.allSystems.Add(system);
+            _allSystems.Add(system);
 
             if (system is IEcsUpdate updateSystem)
             {
-                this.updateSystems.Add(updateSystem);
+                _updateSystems.Add(updateSystem);
             }
 
             if (system is IEcsFixedUpdate fixedUpdateSystem)
             {
-                this.fixedUpdateSystems.Add(fixedUpdateSystem);
+                _fixedUpdateSystems.Add(fixedUpdateSystem);
             }
 
             if (system is IEcsLateUpdate lateUpdateSystem)
             {
-                this.lateUpdateSystems.Add(lateUpdateSystem);
+                _lateUpdateSystems.Add(lateUpdateSystem);
             }
 
 #if UNITY_EDITOR
             if (system is IEcsDrawGizmos gizmosSystem)
             {
-                this.gizmosSystems.Add(gizmosSystem);
+                _gizmosSystems.Add(gizmosSystem);
             }
 #endif
         }
@@ -313,14 +372,14 @@ namespace GameECS
             var eventType = typeof(E);
             EcsEmitter<E> tEmitter;
 
-            if (this.eventEmitters.TryGetValue(eventType, out var emitter))
+            if (_eventEmitters.TryGetValue(eventType, out var emitter))
             {
                 tEmitter = (EcsEmitter<E>) emitter;
             }
             else
             {
-                tEmitter = new EcsEmitter<E>(this.eventSink);
-                this.eventEmitters.Add(eventType, tEmitter);
+                tEmitter = new EcsEmitter<E>(_eventSink);
+                _eventEmitters.Add(eventType, tEmitter);
             }
 
             tEmitter.AddObserver(new T());
@@ -328,12 +387,12 @@ namespace GameECS
 
         public void DeclareExternalServices(IEnumerable<object> services)
         {
-            this.externalServices.AddRange(services);
+            _externalServices.AddRange(services);
         }
 
         public void DeclareExternalService(object service)
         {
-            this.externalServices.Add(service);
+            _externalServices.Add(service);
         }
 
         #endregion
@@ -342,12 +401,12 @@ namespace GameECS
 
         public void ResolveDependencies()
         {
-            foreach (var system in this.allSystems)
+            foreach (var system in _allSystems)
             {
                 this.Inject(system);
             }
 
-            foreach (var eventPool in this.eventEmitters.Values)
+            foreach (var eventPool in _eventEmitters.Values)
             {
                 foreach (var handler in eventPool.GetObservers())
                 {
@@ -373,7 +432,7 @@ namespace GameECS
                 }
             }
 
-            this.externalInjector?.Invoke(target);
+            _externalInjector?.Invoke(target);
 
             if (target is IEcsInjectable injectable)
             {
@@ -409,7 +468,7 @@ namespace GameECS
         private object ResolveComponentPool(Type type)
         {
             var componentType = type.GenericTypeArguments[0];
-            if (this.componentPools.TryGetValue(componentType, out var pool))
+            if (_componentPools.TryGetValue(componentType, out var pool))
             {
                 return pool;
             }
@@ -420,7 +479,7 @@ namespace GameECS
         private object ResolveEventEmitter(Type type)
         {
             var eventType = type.GenericTypeArguments[0];
-            if (this.eventEmitters.TryGetValue(eventType, out var emitter))
+            if (_eventEmitters.TryGetValue(eventType, out var emitter))
             {
                 return emitter;
             }
@@ -430,7 +489,7 @@ namespace GameECS
 
         private bool ResolveService(Type type, out object result)
         {
-            foreach (var service in this.externalServices)
+            foreach (var service in _externalServices)
             {
                 if (type.IsInstanceOfType(service))
                 {
@@ -448,10 +507,10 @@ namespace GameECS
         public void Subscribe<T>(int entity, Action<T> listener) where T : struct
         {
             var eventType = typeof(T);
-            if (!this.eventEmitters.TryGetValue(eventType, out var emitter))
+            if (!_eventEmitters.TryGetValue(eventType, out var emitter))
             {
-                emitter = new EcsEmitter<T>(this.eventSink);
-                this.eventEmitters.Add(eventType, emitter);
+                emitter = new EcsEmitter<T>(_eventSink);
+                _eventEmitters.Add(eventType, emitter);
             }
 
             var tEmitter = (EcsEmitter<T>) emitter;
@@ -461,10 +520,10 @@ namespace GameECS
         public void Subscribe<T>(int entity, IEcsObserver<T> observer) where T : struct
         {
             var eventType = typeof(T);
-            if (!this.eventEmitters.TryGetValue(eventType, out var emitter))
+            if (!_eventEmitters.TryGetValue(eventType, out var emitter))
             {
-                emitter = new EcsEmitter<T>(this.eventSink);
-                this.eventEmitters.Add(eventType, emitter);
+                emitter = new EcsEmitter<T>(_eventSink);
+                _eventEmitters.Add(eventType, emitter);
             }
 
             emitter.Subscribe(entity, observer);
@@ -474,11 +533,11 @@ namespace GameECS
         {
             this.Inject(listener);
 
-            if (!this.eventEmitters.TryGetValue(eventType, out var emitter))
+            if (!_eventEmitters.TryGetValue(eventType, out var emitter))
             {
                 var genericEmitter = typeof(EcsEmitter<>).MakeGenericType(eventType);
-                emitter = (IEcsEmitter) Activator.CreateInstance(genericEmitter, this.eventSink);
-                this.eventEmitters.Add(eventType, emitter);
+                emitter = (IEcsEmitter) Activator.CreateInstance(genericEmitter, _eventSink);
+                _eventEmitters.Add(eventType, emitter);
             }
             
             emitter.Subscribe(entity, listener);
@@ -486,7 +545,7 @@ namespace GameECS
         
         public void Unsubscribe(int entity, Type eventType, IEcsObserver listener)
         {
-            if (this.eventEmitters.TryGetValue(eventType, out var emitter))
+            if (_eventEmitters.TryGetValue(eventType, out var emitter))
             {
                 emitter.Unsubscribe(entity, listener);
             }
@@ -494,7 +553,7 @@ namespace GameECS
 
         public void Unsubscribe<T>(int entity, Action<T> listener) where T : struct
         {
-            if (this.eventEmitters.TryGetValue(typeof(T), out var emitter))
+            if (_eventEmitters.TryGetValue(typeof(T), out var emitter))
             {
                 var tEmitter = (EcsEmitter<T>) emitter;
                 tEmitter.Unsubscribe(entity, listener);
@@ -503,33 +562,42 @@ namespace GameECS
 
 #if UNITY_EDITOR
 
-        private readonly List<IEcsDrawGizmos> gizmosSystems = new();
+        private readonly List<IEcsDrawGizmos> _gizmosSystems = new();
 
         public void OnDrawGizmos()
         {
-            this.cache.Clear();
-            for (int id = 0, count = this.entities.Count; id < count; id++)
+            _cache.Clear();
+            for (int id = 0, count = _entities.Count; id < count; id++)
             {
-                if (this.entities[id])
+                if (_entities[id])
                 {
-                    this.cache.Add(id);
+                    _cache.Add(GetEntityHandle(id));
                 }
             }
 
-            var entityCount = this.cache.Count;
+            var entityCount = _cache.Count;
 
-            for (int i = 0, count = this.gizmosSystems.Count; i < count; i++)
+            for (int i = 0, count = _gizmosSystems.Count; i < count; i++)
             {
-                var system = this.gizmosSystems[i];
+                var system = _gizmosSystems[i];
 
                 for (var e = 0; e < entityCount; e++)
                 {
-                    var id = this.cache[e];
-                    system.OnDrawGizmos(id);
+                    var entity = _cache[e];
+                    if (IsEntityExists(entity))
+                    {
+                        system.OnDrawGizmos(entity.Id);
+                    }
                 }
             }
         }
 
 #endif
+
+        private static uint NextGeneration(uint generation)
+        {
+            generation++;
+            return generation == 0 ? 1 : generation;
+        }
     }
 }

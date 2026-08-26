@@ -5,21 +5,21 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class HitCountdownSystem : IEcsFixedUpdate
     {
-        private readonly EcsPool<HitCountdown> countdownPool;
+        private readonly EcsPool<HitCountdown> _countdownPool;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            if (!this.countdownPool.HasComponent(entity))
+            if (!_countdownPool.HasComponent(entity))
             {
                 return;
             }
 
-            ref var countdown = ref this.countdownPool.GetComponent(entity);
-            countdown.remainingTime -= Time.fixedDeltaTime;
+            ref var countdown = ref _countdownPool.GetComponent(entity);
+            countdown.RemainingTime -= Time.fixedDeltaTime;
 
-            if (countdown.remainingTime <= 0)
+            if (countdown.RemainingTime <= 0)
             {
-                this.countdownPool.RemoveComponent(entity);
+                _countdownPool.RemoveComponent(entity);
             }
         }
     }

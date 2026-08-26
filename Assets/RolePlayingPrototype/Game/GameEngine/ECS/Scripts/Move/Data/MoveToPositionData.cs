@@ -6,8 +6,8 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct MoveToPositionData
     {
-        public Vector3 destination;
-        public float stoppingDistance;
-        public bool isReached;
+[UnityEngine.Serialization.FormerlySerializedAs("destination")]         public Vector3 Destination;
+[UnityEngine.Serialization.FormerlySerializedAs("stoppingDistance")]         public float StoppingDistance;
+[UnityEngine.Serialization.FormerlySerializedAs("isReached")]         public bool IsReached;
     }
 }

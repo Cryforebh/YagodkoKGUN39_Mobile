@@ -2,9 +2,19 @@ using System;
 
 namespace Game.GameEngine.Ecs
 {
+    public enum TeamId
+    {
+        Player = 0,
+        Enemy = 1
+    }
+
     [Serializable]
     public struct TeamComponent
     {
-        public int playerId;
+[UnityEngine.Serialization.FormerlySerializedAs("value")]         public TeamId Value;
+    }
+
+    public struct SelectedComponent
+    {
     }
 }

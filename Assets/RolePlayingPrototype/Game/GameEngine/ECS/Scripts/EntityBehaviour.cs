@@ -11,17 +11,17 @@ namespace Game.GameEngine.Ecs
     [RequireComponent(typeof(Entity))]
     public abstract class EntityBehaviour : MonoBehaviour
     {
-        private Entity entity;
-        private EcsWorld world;
-        private IEcsLoop loop;
-        private CompositeDisposable loopSubscriptions;
-        private bool isConfigured;
+        private Entity _entity;
+        private EcsWorld _world;
+        private IEcsLoop _loop;
+        private CompositeDisposable _loopSubscriptions;
+        private bool _isConfigured;
 
-        private readonly List<IEcsUpdate> updateSystems = new();
-        private readonly List<IEcsFixedUpdate> fixedUpdateSystems = new();
-        private readonly List<IEcsLateUpdate> lateUpdateSystems = new();
+        private readonly List<IEcsUpdate> _updateSystems = new();
+        private readonly List<IEcsFixedUpdate> _fixedUpdateSystems = new();
+        private readonly List<IEcsLateUpdate> _lateUpdateSystems = new();
         
-        private readonly List<(Type, IEcsObserver)> observers = new();
+        private readonly List<(Type, IEcsObserver)> _observers = new();
 
         protected abstract IEnumerable<IEcsSystem> ProvideSystems();
         protected abstract IEnumerable<(Type, IEcsObserver)> ProvideObservers();
@@ -29,16 +29,16 @@ namespace Game.GameEngine.Ecs
         [Inject]
         private void Construct(EcsWorld ecsWorld, IEcsLoop ecsLoop)
         {
-            world = ecsWorld;
-            loop = ecsLoop;
-            entity = GetComponent<Entity>();
+            _world = ecsWorld;
+            _loop = ecsLoop;
+            _entity = GetComponent<Entity>();
 
             var systems = this.ProvideSystems();
             this.RegisterSystems(systems);
 
             var observers = this.ProvideObservers();
-            this.observers.AddRange(observers);
-            isConfigured = true;
+            _observers.AddRange(observers);
+            _isConfigured = true;
 
             if (isActiveAndEnabled)
             {
@@ -48,7 +48,7 @@ namespace Game.GameEngine.Ecs
 
         private void OnEnable()
         {
-            if (isConfigured)
+            if (_isConfigured)
             {
                 SubscribeLifecycle();
             }
@@ -56,28 +56,28 @@ namespace Game.GameEngine.Ecs
 
         private void OnDisable()
         {
-            if (!isConfigured)
+            if (!_isConfigured)
             {
                 return;
             }
 
-            loopSubscriptions?.Dispose();
-            loopSubscriptions = null;
+            _loopSubscriptions?.Dispose();
+            _loopSubscriptions = null;
             UnsubscribeObservers();
         }
 
         private void SubscribeLifecycle()
         {
-            if (loopSubscriptions != null)
+            if (_loopSubscriptions != null)
             {
                 return;
             }
 
-            loopSubscriptions = new CompositeDisposable
+            _loopSubscriptions = new CompositeDisposable
             {
-                loop.Updated.Subscribe(_ => OnUpdate()),
-                loop.FixedUpdated.Subscribe(_ => OnFixedUpdate()),
-                loop.LateUpdated.Subscribe(_ => OnLateUpdate())
+                _loop.Updated.Subscribe(_ => OnUpdate()),
+                _loop.FixedUpdated.Subscribe(_ => OnFixedUpdate()),
+                _loop.LateUpdated.Subscribe(_ => OnLateUpdate())
             };
 
             SubscribeObservers();
@@ -85,33 +85,33 @@ namespace Game.GameEngine.Ecs
 
         private void OnUpdate()
         {
-            if (this.entity.IsExists())
+            if (_entity.IsExists())
             {
-                foreach (var state in this.updateSystems)
+                foreach (var state in _updateSystems)
                 {
-                    state.Update(this.entity.Id);
+                    state.Update(_entity.Id);
                 }
             }
         }
 
         private void OnFixedUpdate()
         {
-            if (this.entity.IsExists())
+            if (_entity.IsExists())
             {
-                foreach (var state in this.fixedUpdateSystems)
+                foreach (var state in _fixedUpdateSystems)
                 {
-                    state.FixedUpdate(this.entity.Id);
+                    state.FixedUpdate(_entity.Id);
                 }
             }
         }
 
         private void OnLateUpdate()
         {
-            if (this.entity.IsExists())
+            if (_entity.IsExists())
             {
-                foreach (var state in this.lateUpdateSystems)
+                foreach (var state in _lateUpdateSystems)
                 {
-                    state.LateUpdate(this.entity.Id);
+                    state.LateUpdate(_entity.Id);
                 }
             }
         }
@@ -120,37 +120,37 @@ namespace Game.GameEngine.Ecs
         {
             foreach (var system in systems)
             {
-                world.Inject(system);
+                _world.Inject(system);
 
                 if (system is IEcsUpdate update)
                 {
-                    this.updateSystems.Add(update);
+                    _updateSystems.Add(update);
                 }
 
                 if (system is IEcsFixedUpdate fixedUpdate)
                 {
-                    this.fixedUpdateSystems.Add(fixedUpdate);
+                    _fixedUpdateSystems.Add(fixedUpdate);
                 }
 
                 if (system is IEcsLateUpdate lateUpdate)
                 {
-                    this.lateUpdateSystems.Add(lateUpdate);
+                    _lateUpdateSystems.Add(lateUpdate);
                 }
             }
         }
         
         private void SubscribeObservers()
         {
-            foreach (var (eventType, observer) in this.observers)
+            foreach (var (eventType, observer) in _observers)
             {
-                world.Subscribe(this.entity.Id, eventType, observer);
+                _world.Subscribe(_entity.Id, eventType, observer);
             }
         }
         private void UnsubscribeObservers()
         {
-            foreach (var (eventType, observer) in this.observers)
+            foreach (var (eventType, observer) in _observers)
             {
-                world.Unsubscribe(this.entity.Id, eventType, observer);
+                _world.Unsubscribe(_entity.Id, eventType, observer);
             }
         }
     }

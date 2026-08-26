@@ -24,7 +24,7 @@ namespace Game.GameEngine.Ecs
 
         private void DrawComponents()
         {
-            var entity = this.target as Entity;
+            var entity = target as Entity;
             var components = entity.GetDataSet();
 
             foreach (var component in components)

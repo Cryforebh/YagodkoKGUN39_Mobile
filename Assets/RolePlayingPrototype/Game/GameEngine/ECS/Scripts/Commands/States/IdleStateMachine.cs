@@ -4,19 +4,19 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class IdleStateMachine : IEcsFixedUpdate, IEcsInjectable
     {
-        private EcsPool<CommandRequest> commandPool;
+        private EcsPool<CommandRequest> _commandPool;
 
-        private readonly IIdleState[] states;
-        private bool isEntered;
+        private readonly IIdleState[] _states;
+        private bool _isEntered;
 
         public IdleStateMachine(params IIdleState[] states)
         {
-            this.states = states;
+            _states = states;
         }
 
         public void Inject(EcsWorld world)
         {
-            foreach (var state in states)
+            foreach (var state in _states)
             {
                 world.Inject(state);
             }
@@ -24,7 +24,7 @@ namespace Game.GameEngine.Ecs
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            if (this.commandPool.HasComponent(entity))
+            if (_commandPool.HasComponent(entity))
             {
                 this.Exit(entity);
                 return;
@@ -36,41 +36,41 @@ namespace Game.GameEngine.Ecs
 
         private void Enter(int entity)
         {
-            if (this.isEntered)
+            if (_isEntered)
             {
                 return;
             }
             
-            for (int i = 0, count = this.states.Length; i < count; i++)
+            for (int i = 0, count = _states.Length; i < count; i++)
             {
-                var state = this.states[i];
+                var state = _states[i];
                 state.OnEnter(entity);
             }
 
-            this.isEntered = true;
+            _isEntered = true;
         }
 
         private void Exit(int entity)
         {
-            if (!this.isEntered)
+            if (!_isEntered)
             {
                 return;
             }
             
-            for (int i = 0, count = this.states.Length; i < count; i++)
+            for (int i = 0, count = _states.Length; i < count; i++)
             {
-                var state = this.states[i];
+                var state = _states[i];
                 state.OnExit(entity);
             }
 
-            this.isEntered = false;
+            _isEntered = false;
         }
 
         private void Update(int entity)
         {
-            for (int i = 0, count = this.states.Length; i < count; i++)
+            for (int i = 0, count = _states.Length; i < count; i++)
             {
-                var state = this.states[i];
+                var state = _states[i];
                 state.OnUpdate(entity);
             }
         }

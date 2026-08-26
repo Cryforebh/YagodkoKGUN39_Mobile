@@ -4,33 +4,33 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class MoveToPositionSystem : IEcsFixedUpdate
     {
-        private readonly EcsPool<TransformComponent> transformPool;
-        private readonly EcsPool<MoveToPositionData> moveToPositionPool;
-        private readonly EcsPool<MoveStepData> moveStepPool;
+        private readonly EcsPool<TransformComponent> _transformPool;
+        private readonly EcsPool<MoveToPositionData> _moveToPositionPool;
+        private readonly EcsPool<MoveStepData> _moveStepPool;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            if (!this.moveToPositionPool.HasComponent(entity))
+            if (!EcsFilter.Matches(entity, _moveToPositionPool, _transformPool))
             {
                 return;
             }
 
-            ref var moveData = ref this.moveToPositionPool.GetComponent(entity);
-            ref var transform = ref this.transformPool.GetComponent(entity);
+            ref var moveData = ref _moveToPositionPool.GetComponent(entity);
+            ref var transform = ref _transformPool.GetComponent(entity);
 
-            var currentPosiiton = transform.value.position;
-            var targetPosition = moveData.destination;
+            var currentPosiiton = transform.Value.position;
+            var targetPosition = moveData.Destination;
             var distanceVector = targetPosition - currentPosiiton;
 
-            moveData.isReached = distanceVector.sqrMagnitude <= moveData.stoppingDistance;
-            if (moveData.isReached)
+            moveData.IsReached = distanceVector.sqrMagnitude <= moveData.StoppingDistance * moveData.StoppingDistance;
+            if (moveData.IsReached)
             {
                 return;
             }
 
-            this.moveStepPool.SetComponent(entity, new MoveStepData
+            _moveStepPool.SetComponent(entity, new MoveStepData
             {
-                direction = distanceVector.normalized
+                Direction = distanceVector.normalized
             });
         }
     }

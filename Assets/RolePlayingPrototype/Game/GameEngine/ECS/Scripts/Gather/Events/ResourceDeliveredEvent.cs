@@ -2,7 +2,7 @@ namespace Game.GameEngine.Ecs
 {
     public struct ResourceDeliveredEvent
     {
-        public string resourceType;
-        public int resourceAmount;
+[UnityEngine.Serialization.FormerlySerializedAs("resourceType")]         public ResourceType ResourceType;
+[UnityEngine.Serialization.FormerlySerializedAs("resourceAmount")]         public int ResourceAmount;
     }
 }

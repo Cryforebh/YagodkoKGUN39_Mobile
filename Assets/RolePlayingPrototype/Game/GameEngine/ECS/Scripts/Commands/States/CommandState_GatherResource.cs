@@ -1,18 +1,15 @@
 using GameECS;
-using SampleProject.Base;
-using Unity.VisualScripting;
-using UnityEngine;
 
 namespace Game.GameEngine.Ecs
 {
     public sealed class CommandState_GatherResource : CommandState
     {
-        private EcsPool<GatherTarget> targetResourcePool;
-        private EcsPool<GatherState> gatherStatePool;
-        private EcsPool<GatherDuration> gatherDurationPool;
+        private EcsPool<GatherTarget> _targetResourcePool;
+        private EcsPool<GatherState> _gatherStatePool;
+        private EcsPool<GatherDuration> _gatherDurationPool;
         
-        private EcsPool<TransformComponent> transformPool;
-        private EcsPool<MoveToPositionData> moveToPositionPool;
+        private EcsPool<TransformComponent> _transformPool;
+        private EcsPool<MoveToPositionData> _moveToPositionPool;
 
         public override bool MatchesType(CommandType type)
         {
@@ -21,16 +18,16 @@ namespace Game.GameEngine.Ecs
 
         public override void Enter(int entity, object args)
         {
-            this.targetResourcePool.SetComponent(entity, new GatherTarget
+            _targetResourcePool.SetComponent(entity, new GatherTarget
             {
-                targetId = ((Entity) args).Id
+                Target = (EntityHandle) args
             });
-            this.gatherStatePool.SetComponent(entity, GatherState.MOVE_TO_RESOURCE);
+            _gatherStatePool.SetComponent(entity, GatherState.MOVE_TO_RESOURCE);
         }
 
         public override void Update(int entity)
         {
-            if (!this.targetResourcePool.HasComponent(entity))
+            if (!_targetResourcePool.HasComponent(entity))
             {
                 this.Complete(entity);
             }
@@ -38,10 +35,10 @@ namespace Game.GameEngine.Ecs
 
         public override void Exit(int entity)
         {
-            this.targetResourcePool.RemoveComponent(entity);
-            this.gatherStatePool.RemoveComponent(entity);
-            this.gatherDurationPool.RemoveComponent(entity);
-            this.moveToPositionPool.RemoveComponent(entity);
+            _targetResourcePool.RemoveComponent(entity);
+            _gatherStatePool.RemoveComponent(entity);
+            _gatherDurationPool.RemoveComponent(entity);
+            _moveToPositionPool.RemoveComponent(entity);
         }
     }
 }

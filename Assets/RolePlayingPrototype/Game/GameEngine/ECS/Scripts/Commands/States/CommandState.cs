@@ -4,7 +4,7 @@ namespace Game.GameEngine.Ecs
 {
     public abstract class CommandState
     {
-        private EcsPool<CommandRequest> commandPool;
+        private EcsPool<CommandRequest> _commandPool;
 
         public abstract bool MatchesType(CommandType type);
 
@@ -22,19 +22,19 @@ namespace Game.GameEngine.Ecs
 
         protected void Fail(int entity)
         {
-            if (this.commandPool.HasComponent(entity))
+            if (_commandPool.HasComponent(entity))
             {
-                ref var command = ref this.commandPool.GetComponent(entity);
-                command.status = CommandStatus.FAIL;
+                ref var command = ref _commandPool.GetComponent(entity);
+                command.Status = CommandStatus.FAIL;
             }
         }
 
         protected void Complete(int entity)
         {
-            if (this.commandPool.HasComponent(entity))
+            if (_commandPool.HasComponent(entity))
             {
-                ref var command = ref this.commandPool.GetComponent(entity);
-                command.status = CommandStatus.COMPLETE;
+                ref var command = ref _commandPool.GetComponent(entity);
+                command.Status = CommandStatus.COMPLETE;
             }
         }
     }

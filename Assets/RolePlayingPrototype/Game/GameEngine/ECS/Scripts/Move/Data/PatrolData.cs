@@ -7,19 +7,19 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct PatrolData
     {
-        public List<Vector3> points;
-        public int pointer;
-        
-        public float stoppingDistance;
+[UnityEngine.Serialization.FormerlySerializedAs("points")]         public List<Vector3> Points;
+[UnityEngine.Serialization.FormerlySerializedAs("pointer")]         public int Pointer;
+[UnityEngine.Serialization.FormerlySerializedAs("stoppingDistance")]         
+        public float StoppingDistance;
 
         public Vector3 GetCurrentPoint()
         {
-            return this.points[this.pointer];
+            return this.Points[this.Pointer];
         }
 
         public void MoveNext()
         {
-            this.pointer = (this.pointer + 1) % this.points.Count;
+            this.Pointer = (this.Pointer + 1) % this.Points.Count;
         }
     }
 }

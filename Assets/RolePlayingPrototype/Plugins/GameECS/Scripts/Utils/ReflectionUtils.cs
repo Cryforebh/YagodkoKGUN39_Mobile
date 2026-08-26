@@ -7,8 +7,8 @@ namespace GameECS
 {
     internal static class ReflectionUtils
     {
-        private static readonly Type OBJECT_TYPE = typeof(object);
-        private static readonly Type MONO_BEHAVIOUR_TYPE = typeof(MonoBehaviour);
+        private static readonly Type _oBJECT_TYPE = typeof(object);
+        private static readonly Type _mONO_BEHAVIOUR_TYPE = typeof(MonoBehaviour);
         
         internal static List<MethodInfo> RetrieveMethods(Type targetType)
         {
@@ -50,7 +50,7 @@ namespace GameECS
         
         private static bool IsRetrievableType(Type type)
         {
-            return type != null && type != OBJECT_TYPE && type != MONO_BEHAVIOUR_TYPE;
+            return type != null && type != _oBJECT_TYPE && type != _mONO_BEHAVIOUR_TYPE;
         }
     }
 }

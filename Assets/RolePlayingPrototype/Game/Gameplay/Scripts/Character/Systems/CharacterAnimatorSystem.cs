@@ -1,41 +1,71 @@
 using Game.GameEngine.Ecs;
 using GameECS;
+using UnityEngine;
 
 namespace SampleProject
 {
     public sealed class CharacterAnimatorSystem : IEcsUpdate
     {
-        private EcsPool<AnimatorComponent> animatorPool;
+        private EcsPool<AnimatorComponent> _animatorPool;
 
-        private EcsPool<MoveStepData> moveStep;
-        private EcsPool<HitDuration> attackPool;
-        private EcsPool<GatherDuration> gatherPool;
+        private EcsPool<MoveStepData> _moveStep;
+        private EcsPool<HitDuration> _attackPool;
+        private EcsPool<GatherDuration> _gatherPool;
+        private EcsPool<DeathAnimationComponent> _deathPool;
+        private EcsPool<TransformComponent> _transformPool;
+
+        private Vector3 _lastPosition;
+        private float _movingUntil;
+        private bool _positionInitialized;
 
         void IEcsUpdate.Update(int entity)
         {
-            ref var animator = ref this.animatorPool.GetComponent(entity).value;
-            var animatorState = this.ResolveState(entity);
+            UpdateMovementState(entity);
+            ref var animator = ref _animatorPool.GetComponent(entity).Value;
+            var animatorState = ResolveState(entity);
             animator.ChangeState(animatorState);
         }
 
         private int ResolveState(int entity)
         {
-            if (this.attackPool.HasComponent(entity))
+            if (_deathPool.HasComponent(entity))
+            {
+                return AnimatorStateId.IDLE;
+            }
+
+            if (_attackPool.HasComponent(entity))
             {
                 return AnimatorStateId.ATTACK;
             }
 
-            if (this.gatherPool.HasComponent(entity))
+            if (_gatherPool.HasComponent(entity))
             {
                 return AnimatorStateId.GATHERING;
             }
 
-            if (this.moveStep.HasComponent(entity))
+            if (_moveStep.HasComponent(entity) && Time.time <= _movingUntil)
             {
                 return AnimatorStateId.MOVE;
             }
 
             return AnimatorStateId.IDLE;
+        }
+
+        private void UpdateMovementState(int entity)
+        {
+            if (!_transformPool.HasComponent(entity))
+            {
+                return;
+            }
+
+            var position = _transformPool.GetComponent(entity).Value.position;
+            if (_positionInitialized && Vector3.ProjectOnPlane(position - _lastPosition, Vector3.up).sqrMagnitude > 0.000001f)
+            {
+                _movingUntil = Time.time + 0.15f;
+            }
+
+            _lastPosition = position;
+            _positionInitialized = true;
         }
     }
 }

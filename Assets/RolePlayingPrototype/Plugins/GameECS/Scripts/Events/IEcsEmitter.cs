@@ -8,5 +8,6 @@ namespace GameECS
         
         void Subscribe(int entity, IEcsObserver listener);
         void Unsubscribe(int entity, IEcsObserver listener);
+        void RemoveEntity(int entity);
     }
 }

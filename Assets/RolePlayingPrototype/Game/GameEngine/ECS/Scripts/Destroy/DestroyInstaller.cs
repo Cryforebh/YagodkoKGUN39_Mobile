@@ -11,7 +11,10 @@ namespace Game.GameEngine.Ecs
     {
         public override void Install(EcsWorld world)
         {
+            world.DeclareComponent<DeathSettingsComponent>();
+            world.DeclareComponent<DeathAnimationComponent>();
             world.DeclareSystem<DestroySystem_HitPointsEmpty>();
+            world.DeclareSystem<DeathAnimationSystem>();
             world.DeclareObserver<DestroyEvent, DestroyObserver_DisableGameObject>();
         }
     }

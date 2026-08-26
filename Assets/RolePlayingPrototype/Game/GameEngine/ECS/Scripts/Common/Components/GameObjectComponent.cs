@@ -6,6 +6,6 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct GameObjectComponent
     {
-        public GameObject value;
+[UnityEngine.Serialization.FormerlySerializedAs("value")]         public GameObject Value;
     }
 }

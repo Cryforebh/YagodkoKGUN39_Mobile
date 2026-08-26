@@ -2,6 +2,6 @@ namespace Game.GameEngine.Ecs
 {
     public struct AnimatorEvent
     {
-        public string message;
+[UnityEngine.Serialization.FormerlySerializedAs("message")]         public string Message;
     }
 }

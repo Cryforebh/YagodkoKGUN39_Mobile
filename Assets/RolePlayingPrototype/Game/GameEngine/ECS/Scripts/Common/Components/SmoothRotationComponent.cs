@@ -5,6 +5,6 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct SmoothRotationComponent
     {
-        public float currentVelocity;
+[UnityEngine.Serialization.FormerlySerializedAs("currentVelocity")]         public float CurrentVelocity;
     }
 }

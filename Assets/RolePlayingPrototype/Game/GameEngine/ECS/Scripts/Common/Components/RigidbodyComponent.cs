@@ -6,6 +6,6 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct RigidbodyComponent
     {
-        public UnityEngine.Rigidbody value;
+[UnityEngine.Serialization.FormerlySerializedAs("value")]         public UnityEngine.Rigidbody Value;
     }
 }

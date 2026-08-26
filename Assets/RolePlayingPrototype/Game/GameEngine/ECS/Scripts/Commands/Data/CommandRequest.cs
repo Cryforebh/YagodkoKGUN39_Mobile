@@ -5,13 +5,13 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct CommandRequest
     {
-        public CommandType type;
-        public CommandStatus status;
-        public object args;
+[UnityEngine.Serialization.FormerlySerializedAs("type")]         public CommandType Type;
+[UnityEngine.Serialization.FormerlySerializedAs("status")]         public CommandStatus Status;
+[UnityEngine.Serialization.FormerlySerializedAs("args")]         public object Args;
 
         public bool Equals(CommandRequest other)
         {
-            return type == other.type && Equals(args, other.args);
+            return Type == other.Type && Equals(Args, other.Args);
         }
 
         public override bool Equals(object obj)
@@ -21,7 +21,7 @@ namespace Game.GameEngine.Ecs
 
         public override int GetHashCode()
         {
-            return HashCode.Combine((int) type, args);
+            return HashCode.Combine((int) Type, Args);
         }
     }
 }

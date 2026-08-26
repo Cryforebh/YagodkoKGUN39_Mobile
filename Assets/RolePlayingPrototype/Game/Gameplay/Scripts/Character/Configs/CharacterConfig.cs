@@ -1,5 +1,6 @@
 using Game.GameEngine.Ecs;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SampleProject
 {
@@ -10,19 +11,27 @@ namespace SampleProject
     public sealed class CharacterConfig : ScriptableObject
     {
         [Header("Common")]
-        public float radius;
+        [FormerlySerializedAs("radius")]
+        public float Radius;
         
         [Header("HitPoints")]
-        public int hitPoints = 100;
+        [FormerlySerializedAs("hitPoints")]
+        public int HitPoints = 100;
         
         [Header("Movement")]
-        public float moveSpeed = 5.0f;
+        [FormerlySerializedAs("moveSpeed")]
+        public float MoveSpeed = 5.0f;
 
         [Header("Combat")]
-        public int damage = 1;
-        public float minDistance = 1.0f;
-        public float animationTime = 1.4f;
-        public float timeBetweenAttack = 0.8f;
-        public DamageType damageType = DamageType.MELEE;
+        [FormerlySerializedAs("damage")]
+        public int Damage = 1;
+        [FormerlySerializedAs("minDistance")]
+        public float MinDistance = 1.0f;
+        [FormerlySerializedAs("animationTime")]
+        public float AnimationTime = 1.4f;
+        [FormerlySerializedAs("timeBetweenAttack")]
+        public float TimeBetweenAttack = 0.8f;
+        [FormerlySerializedAs("damageType")]
+        public DamageType DamageType = DamageType.MELEE;
     }
 }

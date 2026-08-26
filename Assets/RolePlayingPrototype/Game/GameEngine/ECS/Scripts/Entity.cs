@@ -10,18 +10,17 @@ namespace Game.GameEngine.Ecs
     [DefaultExecutionOrder(-5000)]
     public class Entity : MonoBehaviour
     {
-        private const int UNDEFINED = -1;
+        public int Id => Handle.Id;
+        public EntityHandle Handle => _handle.Value;
+        public IReadOnlyReactiveProperty<EntityHandle> ReactiveHandle => _handle;
 
-        public int Id => id.Value;
-        public IReadOnlyReactiveProperty<int> ReactiveId => id;
-
-        private readonly ReactiveProperty<int> id = new(UNDEFINED);
-        private EcsWorld world;
+        private readonly ReactiveProperty<EntityHandle> _handle = new(EntityHandle.Invalid);
+        private EcsWorld _world;
 
         [Inject]
         private void Construct(EcsWorld ecsWorld)
         {
-            world = ecsWorld;
+            _world = ecsWorld;
             if (isActiveAndEnabled && !IsExists())
             {
                 Activate();
@@ -30,7 +29,7 @@ namespace Game.GameEngine.Ecs
 
         private void OnEnable()
         {
-            if (world != null && !IsExists())
+            if (_world != null && !IsExists())
             {
                 Activate();
             }
@@ -38,21 +37,22 @@ namespace Game.GameEngine.Ecs
 
         private void OnDisable()
         {
-            if (world != null && IsExists())
+            if (_world != null && IsExists())
             {
-                world.DestroyEntity(Id);
-                id.Value = UNDEFINED;
+                _world.DestroyEntity(Handle);
+                _handle.Value = EntityHandle.Invalid;
             }
         }
 
         private void OnDestroy()
         {
-            id.Dispose();
+            _handle.Dispose();
         }
 
         private void Activate()
         {
-            id.Value = world.CreateEntity();
+            var entity = _world.CreateEntity();
+            _handle.Value = _world.GetEntityHandle(entity);
             Init();
         }
 
@@ -62,49 +62,49 @@ namespace Game.GameEngine.Ecs
 
         public bool IsExists()
         {
-            return Id >= 0;
+            return _world != null && _world.IsEntityExists(Handle);
         }
 
         public ref T GetData<T>() where T : struct
         {
-            return ref world.GetComponent<T>(Id);
+            return ref _world.GetComponent<T>(Id);
         }
 
         public void SetData<T>(T component) where T : struct
         {
-            world.SetComponent(Id, ref component);
+            _world.SetComponent(Id, ref component);
         }
 
         public void RemoveData<T>() where T : struct
         {
-            world.RemoveComponent<T>(Id);
+            _world.RemoveComponent<T>(Id);
         }
 
         public bool HasData<T>() where T : struct
         {
-            return world.HasComponent<T>(Id);
+            return _world.HasComponent<T>(Id);
         }
 
         public void SendEvent<T>(T data) where T : struct
         {
-            world.SendEvent(Id, data);
+            _world.SendEvent(Id, data);
         }
 
         public void Subscribe<T>(Action<T> listener) where T : struct
         {
-            world.Subscribe(Id, listener);
+            _world.Subscribe(Id, listener);
         }
 
         public void Unsubscribe<T>(Action<T> listener) where T : struct
         {
-            world.Unsubscribe(Id, listener);
+            _world.Unsubscribe(Id, listener);
         }
 
         public List<object> GetDataSet()
         {
-            if (Id != UNDEFINED)
+            if (IsExists())
             {
-                return world.GetRawComponents(Id);
+                return _world.GetRawComponents(Id);
             }
 
             return new List<object>();

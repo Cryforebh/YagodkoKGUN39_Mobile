@@ -5,26 +5,32 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class HitSystem_LookAtTarget : IEcsFixedUpdate
     {
-        private EcsPool<HitRequest> hitRequestPool;
-        private EcsPool<TransformComponent> transformPool;
-        private EcsEmitter<SmoothRotateEvent> rotateEmitter;
+        private EcsPool<HitRequest> _hitRequestPool;
+        private EcsPool<TransformComponent> _transformPool;
+        private EcsEmitter<SmoothRotateEvent> _rotateEmitter;
+        private EcsWorld _world;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            if (!this.hitRequestPool.HasComponent(entity))
+            if (!EcsFilter.Matches(entity, _hitRequestPool, _transformPool))
             {
                 return;
             }
 
-            ref var request = ref this.hitRequestPool.GetComponent(entity);
+            ref var request = ref _hitRequestPool.GetComponent(entity);
+            if (!_world.IsEntityExists(request.Target) || !_transformPool.HasComponent(request.Target.Id))
+            {
+                _hitRequestPool.RemoveComponent(entity);
+                return;
+            }
 
-            ref var myTransform = ref this.transformPool.GetComponent(entity).value;
-            ref var targetTransform = ref this.transformPool.GetComponent(request.targetId).value;
+            ref var myTransform = ref _transformPool.GetComponent(entity).Value;
+            ref var targetTransform = ref _transformPool.GetComponent(request.Target.Id).Value;
             var direction = (targetTransform.position - myTransform.position).normalized;
             
-            this.rotateEmitter.SendEvent(entity, new SmoothRotateEvent
+            _rotateEmitter.SendEvent(entity, new SmoothRotateEvent
             {
-                direction = direction
+                Direction = direction
             });
         }
     }

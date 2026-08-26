@@ -6,7 +6,7 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct TransformComponent
     {
-        public Transform value;
-        public float radius;
+[UnityEngine.Serialization.FormerlySerializedAs("value")]         public Transform Value;
+[UnityEngine.Serialization.FormerlySerializedAs("radius")]         public float Radius;
     }
 }

@@ -1,0 +1,227 @@
+using System.Collections.Generic;
+using Game.GameEngine.Ecs;
+using GameECS;
+using SampleProject.ResourceObject;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
+using Zenject;
+
+namespace SampleProject
+{
+    [RequireComponent(typeof(Camera))]
+    public sealed class UnitSelectionInput : MonoBehaviour
+    {
+        private const float DragThreshold = 15.0f;
+
+        [SerializeField]
+        [FormerlySerializedAs("raycastMask")]
+        private LayerMask _raycastMask = -1;
+
+        private readonly InputAction _pointerPosition = new("Pointer Position", InputActionType.PassThrough, "<Pointer>/position");
+        private readonly InputAction _primaryPress = new("Primary Press", InputActionType.Button, "<Pointer>/press");
+        private readonly InputAction _commandPress = new("Command Press", InputActionType.Button, "<Mouse>/rightButton");
+        private readonly InputAction _additiveSelection = new("Additive Selection", InputActionType.Button, "<Keyboard>/shift");
+
+        private IUnitSelectionService _selection;
+        private IGroupCommandService _commands;
+        private EcsWorld _world;
+        private Camera _worldCamera;
+        private readonly List<EntityHandle> _entityBuffer = new();
+        private Vector2 _dragStart;
+        private bool _isDragging;
+
+        [Inject]
+        private void Construct(IUnitSelectionService unitSelection, IGroupCommandService groupCommands, EcsWorld ecsWorld)
+        {
+            _selection = unitSelection;
+            _commands = groupCommands;
+            _world = ecsWorld;
+        }
+
+        private void Awake()
+        {
+            _worldCamera = GetComponent<Camera>();
+        }
+
+        private void OnEnable()
+        {
+            _pointerPosition.Enable();
+            _primaryPress.Enable();
+            _commandPress.Enable();
+            _additiveSelection.Enable();
+            _primaryPress.started += OnPrimaryStarted;
+            _primaryPress.canceled += OnPrimaryCanceled;
+            _commandPress.performed += OnCommandPress;
+        }
+
+        private void OnDisable()
+        {
+            _primaryPress.started -= OnPrimaryStarted;
+            _primaryPress.canceled -= OnPrimaryCanceled;
+            _commandPress.performed -= OnCommandPress;
+            _pointerPosition.Disable();
+            _primaryPress.Disable();
+            _commandPress.Disable();
+            _additiveSelection.Disable();
+        }
+
+        private void OnDestroy()
+        {
+            _pointerPosition.Dispose();
+            _primaryPress.Dispose();
+            _commandPress.Dispose();
+            _additiveSelection.Dispose();
+        }
+
+        private void OnGUI()
+        {
+            if (!_isDragging || Vector2.Distance(_dragStart, _pointerPosition.ReadValue<Vector2>()) < DragThreshold)
+            {
+                return;
+            }
+
+            var rect = GetScreenRect(_dragStart, _pointerPosition.ReadValue<Vector2>());
+            GUI.Box(new Rect(rect.xMin, Screen.height - rect.yMax, rect.width, rect.height), string.Empty);
+        }
+
+        private void OnPrimaryStarted(InputAction.CallbackContext context)
+        {
+            _dragStart = _pointerPosition.ReadValue<Vector2>();
+            _isDragging = true;
+        }
+
+        private void OnPrimaryCanceled(InputAction.CallbackContext context)
+        {
+            if (!_isDragging)
+            {
+                return;
+            }
+
+            _isDragging = false;
+            var pointer = _pointerPosition.ReadValue<Vector2>();
+            if (Vector2.Distance(_dragStart, pointer) >= DragThreshold)
+            {
+                SelectInRect(GetScreenRect(_dragStart, pointer));
+                return;
+            }
+
+            HandlePrimaryPress(context.control.device is Touchscreen);
+        }
+
+        private void HandlePrimaryPress(bool isTouch)
+        {
+            if (!TryGetPointerHit(out var hit, out var groundPoint))
+            {
+                return;
+            }
+
+            var entity = hit.collider == null ? null : hit.collider.GetComponentInParent<Entity>();
+            var resource = hit.collider == null ? null : hit.collider.GetComponentInParent<ResourceEntity>();
+            if (resource != null && _selection.Selected.Count > 0)
+            {
+                _commands.Gather(resource.Handle);
+                return;
+            }
+
+            if (entity != null)
+            {
+                if (_selection.Select(entity.Handle, _additiveSelection.IsPressed()))
+                {
+                    return;
+                }
+
+                if (isTouch && _selection.Selected.Count > 0)
+                {
+                    _commands.Attack(entity.Handle);
+                }
+
+                return;
+            }
+
+            if (isTouch && _selection.Selected.Count > 0)
+            {
+                _commands.Move(groundPoint);
+                return;
+            }
+
+            _selection.Clear();
+        }
+
+        private void SelectInRect(Rect rect)
+        {
+            if (!_additiveSelection.IsPressed())
+            {
+                _selection.Clear();
+            }
+
+            _world.GetActiveEntities(_entityBuffer);
+            for (var i = 0; i < _entityBuffer.Count; i++)
+            {
+                var entity = _entityBuffer[i];
+                if (!_world.HasComponent<TransformComponent>(entity.Id))
+                {
+                    continue;
+                }
+
+                var position = _world.GetComponent<TransformComponent>(entity.Id).Value.position;
+                var screenPosition = _worldCamera.WorldToScreenPoint(position);
+                if (screenPosition.z > 0 && rect.Contains(screenPosition))
+                {
+                    _selection.Select(entity, true);
+                }
+            }
+        }
+
+        private void OnCommandPress(InputAction.CallbackContext context)
+        {
+            if (_selection.Selected.Count == 0 || !TryGetPointerHit(out var hit, out var groundPoint))
+            {
+                return;
+            }
+
+            var resource = hit.collider == null ? null : hit.collider.GetComponentInParent<ResourceEntity>();
+            if (resource != null)
+            {
+                _commands.Gather(resource.Handle);
+                return;
+            }
+
+            var target = hit.collider == null ? null : hit.collider.GetComponentInParent<Entity>();
+            if (target != null)
+            {
+                _commands.Attack(target.Handle);
+                return;
+            }
+
+            _commands.Move(groundPoint);
+        }
+
+        private bool TryGetPointerHit(out RaycastHit hit, out Vector3 groundPoint)
+        {
+            var ray = _worldCamera.ScreenPointToRay(_pointerPosition.ReadValue<Vector2>());
+            if (Physics.Raycast(ray, out hit, float.MaxValue, _raycastMask))
+            {
+                groundPoint = hit.point;
+                return true;
+            }
+
+            var groundPlane = new Plane(Vector3.up, Vector3.zero);
+            if (groundPlane.Raycast(ray, out var distance))
+            {
+                groundPoint = ray.GetPoint(distance);
+                return true;
+            }
+
+            groundPoint = default;
+            return false;
+        }
+
+        private static Rect GetScreenRect(Vector2 start, Vector2 end)
+        {
+            var min = Vector2.Min(start, end);
+            var max = Vector2.Max(start, end);
+            return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+        }
+    }
+}

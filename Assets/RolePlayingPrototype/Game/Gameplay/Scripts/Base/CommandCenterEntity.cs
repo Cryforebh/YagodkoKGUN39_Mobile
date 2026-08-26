@@ -2,14 +2,14 @@ using Game.GameEngine.Ecs;
 
 namespace SampleProject.Base
 {
-    public sealed class CommandCenterEntity : Entity
+    public sealed class CommandCenterEntity : Entity, IResourceDepot
     {
         protected override void Init()
         {
-            this.SetData(new TransformComponent
+            SetData(new TransformComponent
             {
-                value = this.transform,
-                radius = 2.5f
+                Value = transform,
+                Radius = 2.5f
             });
         }
     }

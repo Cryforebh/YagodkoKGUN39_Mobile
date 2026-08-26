@@ -5,11 +5,11 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct CombatComponent
     {
-        public int damage;
-        public float minDistance;
-        
-        public float animationTime;
-        public float timeBetweenAttack;
-        public DamageType damageType;
+[UnityEngine.Serialization.FormerlySerializedAs("damage")]         public int Damage;
+[UnityEngine.Serialization.FormerlySerializedAs("minDistance")]         public float MinDistance;
+[UnityEngine.Serialization.FormerlySerializedAs("animationTime")]         
+        public float AnimationTime;
+[UnityEngine.Serialization.FormerlySerializedAs("timeBetweenAttack")]         public float TimeBetweenAttack;
+[UnityEngine.Serialization.FormerlySerializedAs("damageType")]         public DamageType DamageType;
     }
 }

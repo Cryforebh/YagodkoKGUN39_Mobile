@@ -4,12 +4,17 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class TakeDamageObserver_DecrementHitPoints : IEcsObserver<TakeDamageEvent>
     {
-        private readonly EcsPool<HitPointsComponent> hitPointsPool;
+        private readonly EcsPool<HitPointsComponent> _hitPointsPool;
         
         void IEcsObserver<TakeDamageEvent>.Handle(int entity, TakeDamageEvent takeDamageEvent)
         {
-            ref var hitPoints = ref this.hitPointsPool.GetComponent(entity);
-            hitPoints.current -= takeDamageEvent.damage;
+            if (!_hitPointsPool.HasComponent(entity))
+            {
+                return;
+            }
+
+            ref var hitPoints = ref _hitPointsPool.GetComponent(entity);
+            hitPoints.Current -= takeDamageEvent.Damage;
         }
     }
 }

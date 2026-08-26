@@ -4,22 +4,27 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class HitObserver_DealMeleeDamage : IEcsObserver<HitEvent>
     {
-        private readonly EcsEmitter<TakeDamageEvent> takeDamageEmitter;
+        private readonly EcsEmitter<TakeDamageEvent> _takeDamageEmitter;
+        private EcsWorld _world;
         
         void IEcsObserver<HitEvent>.Handle(int entity, HitEvent @event)
         {
-            if (@event.damageType != DamageType.MELEE)
+            if (@event.DamageType != DamageType.MELEE)
             {
                 return;
             }
 
-            this.takeDamageEmitter.SendEvent(@event.targetId, new TakeDamageEvent
+            if (!_world.IsEntityExists(@event.Target))
             {
-                sourceId = entity,
-                damage = @event.damage,
-                damageType = @event.damageType
+                return;
+            }
+
+            _takeDamageEmitter.SendEvent(@event.Target.Id, new TakeDamageEvent
+            {
+                Source = _world.GetEntityHandle(entity),
+                Damage = @event.Damage,
+                DamageType = @event.DamageType
             });
         }
     }
 }
-

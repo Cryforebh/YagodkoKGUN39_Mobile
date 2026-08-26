@@ -9,10 +9,10 @@ namespace RolePlayingPrototype.Editor
     [CustomEditor(typeof(CommandController))]
     public sealed class CommandControllerEditor : UnityEditor.Editor
     {
-        private Transform point;
-        private Entity targetEntity;
-        private Entity resourceEntity;
-        private Transform[] patrolPoints = Array.Empty<Transform>();
+        private Transform _point;
+        private Entity _targetEntity;
+        private Entity _resourceEntity;
+        private Transform[] _patrolPoints = Array.Empty<Transform>();
 
         public override void OnInspectorGUI()
         {
@@ -25,28 +25,28 @@ namespace RolePlayingPrototype.Editor
             }
 
             var controller = (CommandController)target;
-            point = (Transform)EditorGUILayout.ObjectField("Move Point", point, typeof(Transform), true);
-            using (new EditorGUI.DisabledScope(!Application.isPlaying || point == null))
+            _point = (Transform)EditorGUILayout.ObjectField("Move Point", _point, typeof(Transform), true);
+            using (new EditorGUI.DisabledScope(!Application.isPlaying || _point == null))
             {
-                if (GUILayout.Button("Move To Position")) controller.MoveToPosition(point);
+                if (GUILayout.Button("Move To Position")) controller.MoveToPosition(_point);
             }
 
-            targetEntity = (Entity)EditorGUILayout.ObjectField("Attack Target", targetEntity, typeof(Entity), true);
-            using (new EditorGUI.DisabledScope(!Application.isPlaying || targetEntity == null))
+            _targetEntity = (Entity)EditorGUILayout.ObjectField("Attack Target", _targetEntity, typeof(Entity), true);
+            using (new EditorGUI.DisabledScope(!Application.isPlaying || _targetEntity == null))
             {
-                if (GUILayout.Button("Attack Target")) controller.AttackTarget(targetEntity);
+                if (GUILayout.Button("Attack Target")) controller.AttackTarget(_targetEntity);
             }
 
-            resourceEntity = (Entity)EditorGUILayout.ObjectField("Resource", resourceEntity, typeof(Entity), true);
-            using (new EditorGUI.DisabledScope(!Application.isPlaying || resourceEntity == null))
+            _resourceEntity = (Entity)EditorGUILayout.ObjectField("Resource", _resourceEntity, typeof(Entity), true);
+            using (new EditorGUI.DisabledScope(!Application.isPlaying || _resourceEntity == null))
             {
-                if (GUILayout.Button("Gather Resource")) controller.GatherResource(resourceEntity);
+                if (GUILayout.Button("Gather Resource")) controller.GatherResource(_resourceEntity);
             }
 
-            DrawPatrolPoints(ref patrolPoints);
-            using (new EditorGUI.DisabledScope(!Application.isPlaying || patrolPoints.Length == 0 || Array.Exists(patrolPoints, item => item == null)))
+            DrawPatrolPoints(ref _patrolPoints);
+            using (new EditorGUI.DisabledScope(!Application.isPlaying || _patrolPoints.Length == 0 || Array.Exists(_patrolPoints, item => item == null)))
             {
-                if (GUILayout.Button("Patrol")) controller.Patrol(patrolPoints);
+                if (GUILayout.Button("Patrol")) controller.Patrol(_patrolPoints);
             }
 
             using (new EditorGUI.DisabledScope(!Application.isPlaying))
@@ -66,51 +66,6 @@ namespace RolePlayingPrototype.Editor
                 points[i] = (Transform)EditorGUILayout.ObjectField("Point " + (i + 1), points[i], typeof(Transform), true);
             }
             EditorGUI.indentLevel--;
-        }
-    }
-
-    [CustomEditor(typeof(DataController))]
-    public sealed class DataControllerEditor : UnityEditor.Editor
-    {
-        private Transform point;
-        private Entity targetEntity;
-        private Entity resourceEntity;
-        private Transform[] patrolPoints = Array.Empty<Transform>();
-
-        public override void OnInspectorGUI()
-        {
-            DrawDefaultInspector();
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Commands", EditorStyles.boldLabel);
-            if (!Application.isPlaying)
-            {
-                EditorGUILayout.HelpBox("Commands are available in Play Mode after Zenject initializes the scene.", MessageType.Info);
-            }
-
-            var controller = (DataController)target;
-            point = (Transform)EditorGUILayout.ObjectField("Move Point", point, typeof(Transform), true);
-            using (new EditorGUI.DisabledScope(!Application.isPlaying || point == null))
-            {
-                if (GUILayout.Button("Move To Position")) controller.MoveToPosition(point);
-            }
-
-            targetEntity = (Entity)EditorGUILayout.ObjectField("Attack Target", targetEntity, typeof(Entity), true);
-            using (new EditorGUI.DisabledScope(!Application.isPlaying || targetEntity == null))
-            {
-                if (GUILayout.Button("Attack Target")) controller.AttackTarget(targetEntity);
-            }
-
-            resourceEntity = (Entity)EditorGUILayout.ObjectField("Resource", resourceEntity, typeof(Entity), true);
-            using (new EditorGUI.DisabledScope(!Application.isPlaying || resourceEntity == null))
-            {
-                if (GUILayout.Button("Gather Resource")) controller.GatherResource(resourceEntity);
-            }
-
-            CommandControllerEditor.DrawPatrolPoints(ref patrolPoints);
-            using (new EditorGUI.DisabledScope(!Application.isPlaying || patrolPoints.Length == 0 || Array.Exists(patrolPoints, item => item == null)))
-            {
-                if (GUILayout.Button("Patrol")) controller.Patrol(patrolPoints);
-            }
         }
     }
 

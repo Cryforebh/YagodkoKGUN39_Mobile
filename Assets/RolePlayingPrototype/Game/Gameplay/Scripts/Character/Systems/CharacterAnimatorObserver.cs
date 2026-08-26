@@ -7,40 +7,40 @@ namespace Game.GameEngine.Ecs
     {
         private const string ATTACK_MESSAGE = "attack";
 
-        private EcsPool<HitRequest> requestPool;
-        private EcsPool<CombatComponent> attackComponentPool;
-        private EcsEmitter<HitEvent> hitEmitter;
+        private EcsPool<HitRequest> _requestPool;
+        private EcsPool<CombatComponent> _attackComponentPool;
+        private EcsEmitter<HitEvent> _hitEmitter;
 
         void IEcsObserver<AnimatorEvent>.Handle(int entity, AnimatorEvent @event)
         {
-            if (@event.message == ATTACK_MESSAGE)
+            if (@event.Message == ATTACK_MESSAGE)
             {
-                Debug.Log("ATTACK!");
-                this.Attack(entity);
+                Attack(entity);
             }
         }
 
         private void Attack(int entity)
         {
-            if (this.requestPool == null)
+            if (_requestPool == null)
             {
                 Debug.LogError("RQ POOL NULL");
             }
             
-            if (!this.requestPool.HasComponent(entity))
+            if (!_requestPool.HasComponent(entity))
             {
                 return;
             }
 
-            ref var request = ref this.requestPool.GetComponent(entity);
-            ref var component = ref this.attackComponentPool.GetComponent(entity);
+            ref var request = ref _requestPool.GetComponent(entity);
+            ref var component = ref _attackComponentPool.GetComponent(entity);
 
-            this.hitEmitter.SendEvent(entity, new HitEvent
+            _hitEmitter.SendEvent(entity, new HitEvent
             {
-                targetId = request.targetId,
-                damage = component.damage,
-                damageType = component.damageType
+                Target = request.Target,
+                Damage = component.Damage,
+                DamageType = component.DamageType
             });
+            Debug.Log("ATTACK!");
         }
     }
 }

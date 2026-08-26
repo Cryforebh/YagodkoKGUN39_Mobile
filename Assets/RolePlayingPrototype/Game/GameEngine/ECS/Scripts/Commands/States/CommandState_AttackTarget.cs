@@ -4,13 +4,14 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class CommandState_AttackTarget : CommandState
     {
-        private EcsPool<AttackTarget> attackPool;
+        private EcsPool<AttackTarget> _attackPool;
+        private EcsPool<AttackSlotComponent> _attackSlotPool;
 
-        private EcsPool<HitRequest> hitRequestPool;
-        private EcsPool<MoveToPositionData> moveToPositionPool;
-        private EcsPool<HitPointsComponent> hitPointsPool;
+        private EcsPool<HitRequest> _hitRequestPool;
+        private EcsPool<MoveToPositionData> _moveToPositionPool;
+        private EcsPool<HitPointsComponent> _hitPointsPool;
 
-        private EcsWorld world;
+        private EcsWorld _world;
 
         public override bool MatchesType(CommandType type)
         {
@@ -19,17 +20,18 @@ namespace Game.GameEngine.Ecs
 
         public override void Enter(int entity, object args)
         {
-            this.attackPool.SetComponent(entity, new AttackTarget
+            _attackPool.SetComponent(entity, new AttackTarget
             {
-                targetId = ((Entity) args).Id
+                Target = (EntityHandle) args
             });
         }
 
         public override void Exit(int entity)
         {
-            this.attackPool.RemoveComponent(entity);
-            this.hitRequestPool.RemoveComponent(entity);
-            this.moveToPositionPool.RemoveComponent(entity);
+            _attackPool.RemoveComponent(entity);
+            _attackSlotPool.RemoveComponent(entity);
+            _hitRequestPool.RemoveComponent(entity);
+            _moveToPositionPool.RemoveComponent(entity);
         }
 
         public override void Update(int entity)
@@ -42,14 +44,19 @@ namespace Game.GameEngine.Ecs
 
         private bool IsTargetExists(int entity)
         {
-            ref var targetId = ref this.attackPool.GetComponent(entity).targetId;
-            if (!this.world.IsEntityExists(targetId))
+            if (!_attackPool.HasComponent(entity))
+            {
+                return false;
+            }
+
+            ref var target = ref _attackPool.GetComponent(entity).Target;
+            if (!_world.IsEntityExists(target) || !_hitPointsPool.HasComponent(target.Id))
             {
                 return false;
             }
             
-            ref var targetHitPoints = ref this.hitPointsPool.GetComponent(targetId);
-            return targetHitPoints.current > 0;
+            ref var targetHitPoints = ref _hitPointsPool.GetComponent(target.Id);
+            return targetHitPoints.Current > 0;
         }
     }
 }

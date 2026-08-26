@@ -17,11 +17,13 @@ namespace Game.GameEngine.Ecs
             world.DeclareComponent<HitRequest>();
             world.DeclareComponent<HitDuration>();
             world.DeclareComponent<AttackTarget>();
+            world.DeclareComponent<AttackSlotComponent>();
 
             world.DeclareSystem<HitRequestSystem>();
             world.DeclareSystem<HitCountdownSystem>();
             world.DeclareSystem<HitDurationSystem>();
             world.DeclareSystem<HitSystem_LookAtTarget>();
+            world.DeclareSystem<AttackSlotSystem>();
             world.DeclareSystem<AttackTargetSystem>();
 
             world.DeclareObserver<HitEvent, HitObserver_DealMeleeDamage>();

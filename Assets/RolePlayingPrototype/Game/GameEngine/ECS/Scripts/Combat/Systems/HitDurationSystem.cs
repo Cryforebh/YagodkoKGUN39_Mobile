@@ -5,23 +5,23 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class HitDurationSystem : IEcsFixedUpdate
     {
-        private readonly EcsPool<HitDuration> durationPool;
+        private readonly EcsPool<HitDuration> _durationPool;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            if (!this.durationPool.HasComponent(entity))
+            if (!_durationPool.HasComponent(entity))
             {
                 return;
             }
 
             var deltaTime = Time.fixedDeltaTime;
 
-            ref var duration = ref this.durationPool.GetComponent(entity);
-            duration.remainingTime -= deltaTime;
+            ref var duration = ref _durationPool.GetComponent(entity);
+            duration.RemainingTime -= deltaTime;
 
-            if (duration.remainingTime <= 0.0f)
+            if (duration.RemainingTime <= 0.0f)
             {
-                this.durationPool.RemoveComponent(entity);
+                _durationPool.RemoveComponent(entity);
             }
         }
     }

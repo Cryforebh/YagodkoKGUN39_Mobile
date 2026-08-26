@@ -7,8 +7,8 @@ namespace Game.GameEngine.Ecs
     {
         private const float STOPPING_DISTANCE = 0.2f;
 
-        private EcsPool<MoveToPositionData> moveToPositionPool;
-        private EcsPool<TransformComponent> transformPool;
+        private EcsPool<MoveToPositionData> _moveToPositionPool;
+        private EcsPool<TransformComponent> _transformPool;
 
         public override bool MatchesType(CommandType type)
         {
@@ -17,17 +17,17 @@ namespace Game.GameEngine.Ecs
 
         public override void Enter(int entity, object args)
         {
-            this.moveToPositionPool.SetComponent(entity, new MoveToPositionData
+            _moveToPositionPool.SetComponent(entity, new MoveToPositionData
             {
-                destination = (Vector3) args,
-                stoppingDistance = STOPPING_DISTANCE
+                Destination = (Vector3) args,
+                StoppingDistance = STOPPING_DISTANCE
             });
         }
 
         public override void Update(int entity)
         {
-            ref var moveData = ref this.moveToPositionPool.GetComponent(entity);
-            if (moveData.isReached)
+            ref var moveData = ref _moveToPositionPool.GetComponent(entity);
+            if (moveData.IsReached)
             {
                 this.Complete(entity);
             }
@@ -35,7 +35,7 @@ namespace Game.GameEngine.Ecs
 
         public override void Exit(int entity)
         {
-            this.moveToPositionPool.RemoveComponent(entity);
+            _moveToPositionPool.RemoveComponent(entity);
         }
     }
 }

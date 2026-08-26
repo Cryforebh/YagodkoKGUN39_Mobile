@@ -6,6 +6,6 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct SmoothRotateEvent
     {
-        public Vector3 direction;
+[UnityEngine.Serialization.FormerlySerializedAs("direction")]         public Vector3 Direction;
     }
 }

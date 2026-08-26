@@ -5,13 +5,13 @@ namespace Game.GameEngine.Ecs
     public sealed class ScriptableAnimatorState : StateMachineBehaviour
     {
         [SerializeField]
-        private int stateId;
+[UnityEngine.Serialization.FormerlySerializedAs("stateId")]         private int _stateId;
         
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
             if (animator.TryGetComponent(out AnimatorMachine eventDispatcher))
             {
-                eventDispatcher.OnEnterState(stateInfo, this.stateId, layerIndex);
+                eventDispatcher.OnEnterState(stateInfo, _stateId, layerIndex);
             }
         }
 
@@ -19,7 +19,7 @@ namespace Game.GameEngine.Ecs
         {
             if (animator.TryGetComponent(out AnimatorMachine eventDispatcher))
             {
-                eventDispatcher.OnExitState(stateInfo, this.stateId, layerIndex);
+                eventDispatcher.OnExitState(stateInfo, _stateId, layerIndex);
             }
         }
     }

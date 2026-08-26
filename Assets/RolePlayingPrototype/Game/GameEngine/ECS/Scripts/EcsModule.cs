@@ -1,6 +1,4 @@
 using GameECS;
-using SampleProject;
-using SampleProject.Base;
 using UnityEngine;
 using Zenject;
 
@@ -9,18 +7,15 @@ namespace Game.GameEngine.Ecs
     public sealed class EcsModule : MonoInstaller
     {
         [SerializeField]
-        private EcsInstaller[] installers;
+[UnityEngine.Serialization.FormerlySerializedAs("installers")]         private EcsInstaller[] _installers;
 
         public override void InstallBindings()
         {
-            Container.Bind<CommandCenterEntity>().FromComponentInHierarchy().AsSingle();
-            Container.BindInterfacesAndSelfTo<EntityCommandService>().AsSingle();
-
             var eventBus = new EcsReactiveBus();
             var world = new EcsWorld(eventBus);
             world.SetExternalInjector(Container.Inject);
             
-            foreach (var installer in installers)
+            foreach (var installer in _installers)
             {
                 installer.Install(world);
             }

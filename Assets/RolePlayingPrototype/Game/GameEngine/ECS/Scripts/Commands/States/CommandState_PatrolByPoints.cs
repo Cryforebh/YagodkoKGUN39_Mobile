@@ -8,9 +8,9 @@ namespace Game.GameEngine.Ecs
     {
         private const float STOPPING_DISTANCE = 0.35f;
 
-        private EcsPool<TransformComponent> transformPool;
-        private EcsPool<PatrolData> patrolPointsPool;
-        private EcsPool<MoveToPositionData> moveToPositionPool;
+        private EcsPool<TransformComponent> _transformPool;
+        private EcsPool<PatrolData> _patrolPointsPool;
+        private EcsPool<MoveToPositionData> _moveToPositionPool;
 
         public override bool MatchesType(CommandType type)
         {
@@ -19,18 +19,18 @@ namespace Game.GameEngine.Ecs
         
         public override void Enter(int entity, object args)
         {
-            this.patrolPointsPool.SetComponent(entity, new PatrolData
+            _patrolPointsPool.SetComponent(entity, new PatrolData
             {
-                points = (List<Vector3>) args,
-                pointer = 0,
-                stoppingDistance = STOPPING_DISTANCE
+                Points = (List<Vector3>) args,
+                Pointer = 0,
+                StoppingDistance = STOPPING_DISTANCE
             });
         }
 
         public override void Exit(int entity)
         {
-            this.patrolPointsPool.RemoveComponent(entity);
-            this.moveToPositionPool.RemoveComponent(entity);
+            _patrolPointsPool.RemoveComponent(entity);
+            _moveToPositionPool.RemoveComponent(entity);
         }
     }
 }

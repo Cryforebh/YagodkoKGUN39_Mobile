@@ -1,0 +1,22 @@
+{
+    "name": "RolePlayingPrototype.Gameplay",
+    "rootNamespace": "SampleProject",
+    "references": [
+        "GameECS",
+        "RolePlayingPrototype.GameEngine",
+        "UniRx",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "Unity.ugui",
+        "Zenject"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

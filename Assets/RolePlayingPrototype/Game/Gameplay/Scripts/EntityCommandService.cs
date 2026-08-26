@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.GameEngine.Ecs;
+using GameECS;
 using UniRx;
 using UnityEngine;
 
@@ -8,12 +9,12 @@ namespace SampleProject
 {
     public readonly struct IssuedEntityCommand
     {
-        public int EntityId { get; }
+        public EntityHandle Entity { get; }
         public CommandType Type { get; }
 
-        public IssuedEntityCommand(int entityId, CommandType type)
+        public IssuedEntityCommand(EntityHandle entity, CommandType type)
         {
-            EntityId = entityId;
+            Entity = entity;
             Type = type;
         }
     }
@@ -21,66 +22,73 @@ namespace SampleProject
     public interface IEntityCommandService
     {
         IObservable<IssuedEntityCommand> IssuedCommands { get; }
-        void Move(Entity entity, Vector3 position);
-        void Attack(Entity entity, Entity target);
-        void Gather(Entity entity, Entity resource);
-        void Patrol(Entity entity, IReadOnlyList<Vector3> points);
-        void Stop(Entity entity);
+        void Move(EntityHandle entity, Vector3 position);
+        void Attack(EntityHandle entity, EntityHandle target);
+        void Gather(EntityHandle entity, EntityHandle resource);
+        void Patrol(EntityHandle entity, IReadOnlyList<Vector3> points);
+        void Stop(EntityHandle entity);
     }
 
     public sealed class EntityCommandService : IEntityCommandService, IDisposable
     {
-        private readonly Subject<IssuedEntityCommand> issuedCommands = new();
+        private readonly Subject<IssuedEntityCommand> _issuedCommands = new();
+        private readonly EcsWorld _world;
 
-        public IObservable<IssuedEntityCommand> IssuedCommands => issuedCommands;
+        public IObservable<IssuedEntityCommand> IssuedCommands => _issuedCommands;
 
-        public void Move(Entity entity, Vector3 position)
+        public EntityCommandService(EcsWorld world)
+        {
+            _world = world;
+        }
+
+        public void Move(EntityHandle entity, Vector3 position)
         {
             SetCommand(entity, CommandType.MOVE_TO_POSITION, position);
         }
 
-        public void Attack(Entity entity, Entity target)
+        public void Attack(EntityHandle entity, EntityHandle target)
         {
             SetCommand(entity, CommandType.ATTACK_TARGET, target);
         }
 
-        public void Gather(Entity entity, Entity resource)
+        public void Gather(EntityHandle entity, EntityHandle resource)
         {
             SetCommand(entity, CommandType.GATHER_RESOURCE, resource);
         }
 
-        public void Patrol(Entity entity, IReadOnlyList<Vector3> points)
+        public void Patrol(EntityHandle entity, IReadOnlyList<Vector3> points)
         {
             SetCommand(entity, CommandType.PATROL_BY_POINTS, new List<Vector3>(points));
         }
 
-        public void Stop(Entity entity)
+        public void Stop(EntityHandle entity)
         {
-            if (entity != null && entity.IsExists() && entity.HasData<CommandRequest>())
+            if (_world.IsEntityExists(entity) && _world.HasComponent<CommandRequest>(entity.Id))
             {
-                entity.RemoveData<CommandRequest>();
+                _world.RemoveComponent<CommandRequest>(entity.Id);
             }
         }
 
         public void Dispose()
         {
-            issuedCommands.Dispose();
+            _issuedCommands.Dispose();
         }
 
-        private void SetCommand(Entity entity, CommandType type, object args)
+        private void SetCommand(EntityHandle entity, CommandType type, object args)
         {
-            if (entity == null || !entity.IsExists())
+            if (!_world.IsEntityExists(entity))
             {
                 return;
             }
 
-            entity.SetData(new CommandRequest
+            var command = new CommandRequest
             {
-                type = type,
-                args = args,
-                status = CommandStatus.IDLE
-            });
-            issuedCommands.OnNext(new IssuedEntityCommand(entity.Id, type));
+                Type = type,
+                Args = args,
+                Status = CommandStatus.IDLE
+            };
+            _world.SetComponent(entity.Id, ref command);
+            _issuedCommands.OnNext(new IssuedEntityCommand(entity, type));
         }
     }
 }

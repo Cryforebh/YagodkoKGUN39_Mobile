@@ -5,6 +5,6 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct GatherDuration
     {
-        public float remainingTime;
+[UnityEngine.Serialization.FormerlySerializedAs("remainingTime")]         public float RemainingTime;
     }
 }

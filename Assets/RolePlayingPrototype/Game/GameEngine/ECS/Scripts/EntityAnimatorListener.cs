@@ -5,28 +5,28 @@ namespace Game.GameEngine.Ecs
     [RequireComponent(typeof(Entity))]
     public sealed class EntityAnimatorListener : MonoBehaviour
     {
-        private Entity entity;
-        private AnimatorMachine animator;
+        private Entity _entity;
+        private AnimatorMachine _animator;
 
         private void Awake()
         {
-            this.entity = this.GetComponent<Entity>();
-            this.animator = this.GetComponentInChildren<AnimatorMachine>();
+            _entity = this.GetComponent<Entity>();
+            _animator = this.GetComponentInChildren<AnimatorMachine>();
         }
 
         private void OnEnable()
         {
-            this.animator.OnMessageReceived += this.OnMessageReceived;
+            _animator.OnMessageReceived += this.OnMessageReceived;
         }
 
         private void OnDisable()
         {
-            this.animator.OnMessageReceived -= this.OnMessageReceived;
+            _animator.OnMessageReceived -= this.OnMessageReceived;
         }
 
         private void OnMessageReceived(string message)
         {
-            this.entity.SendEvent(new AnimatorEvent {message = message});
+            _entity.SendEvent(new AnimatorEvent {Message = message});
         }
     }
 }

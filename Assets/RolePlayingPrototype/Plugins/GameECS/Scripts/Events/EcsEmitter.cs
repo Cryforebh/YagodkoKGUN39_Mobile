@@ -6,26 +6,26 @@ namespace GameECS
 {
     public sealed class EcsEmitter<T> : IEcsEmitter where T : struct
     {
-        private readonly IEcsEventSink eventSink;
-        private readonly List<IEcsObserver<T>> observers = new();
-        private readonly Dictionary<int, Listener> entityListeners = new();
+        private readonly IEcsEventSink _eventSink;
+        private readonly List<IEcsObserver<T>> _observers = new();
+        private readonly Dictionary<int, Listener> _entityListeners = new();
 
         public EcsEmitter(IEcsEventSink eventSink = null)
         {
-            this.eventSink = eventSink;
+            _eventSink = eventSink;
         }
 
         public void SendEvent(int entity, T @event)
         {
-            this.eventSink?.Publish(entity, @event);
+            _eventSink?.Publish(entity, @event);
 
-            for (int i = 0, count = this.observers.Count; i < count; i++)
+            for (int i = 0, count = _observers.Count; i < count; i++)
             {
-                var observer = this.observers[i];
+                var observer = _observers[i];
                 observer.Handle(entity, @event);
             }
             
-            if (this.entityListeners.TryGetValue(entity, out var listener))
+            if (_entityListeners.TryGetValue(entity, out var listener))
             {
                 listener.Invoke(entity, @event);
             }
@@ -33,12 +33,12 @@ namespace GameECS
 
         internal void AddObserver(IEcsObserver<T> observer)
         {
-            this.observers.Add(observer);
+            _observers.Add(observer);
         }
 
         IEnumerable<object> IEcsEmitter.GetObservers()
         {
-            return this.observers;
+            return _observers;
         }
 
         void IEcsEmitter.Subscribe(int entity, IEcsObserver observer)
@@ -48,10 +48,10 @@ namespace GameECS
                 return;
             }
 
-            if (!this.entityListeners.TryGetValue(entity, out var listener))
+            if (!_entityListeners.TryGetValue(entity, out var listener))
             {
                 listener = new Listener();
-                this.entityListeners.Add(entity, listener);
+                _entityListeners.Add(entity, listener);
             }
 
             listener.observers.Add(tObserver);
@@ -64,18 +64,23 @@ namespace GameECS
                 return;
             }
             
-            if (this.entityListeners.TryGetValue(entity, out var listener))
+            if (_entityListeners.TryGetValue(entity, out var listener))
             {
                 listener.observers.Remove(tObserver);
             }
         }
 
+        void IEcsEmitter.RemoveEntity(int entity)
+        {
+            _entityListeners.Remove(entity);
+        }
+
         internal void Subscribe(int entity, Action<T> callback)
         {
-            if (!this.entityListeners.TryGetValue(entity, out var listener))
+            if (!_entityListeners.TryGetValue(entity, out var listener))
             {
                 listener = new Listener();
-                this.entityListeners.Add(entity, listener);
+                _entityListeners.Add(entity, listener);
             }
             
             listener.onEvent += callback;
@@ -83,7 +88,7 @@ namespace GameECS
         
         internal void Unsubscribe(int entity, Action<T> callback)
         {
-            if (this.entityListeners.TryGetValue(entity, out var listener))
+            if (_entityListeners.TryGetValue(entity, out var listener))
             {
                 listener.onEvent -= callback;
             }
@@ -94,18 +99,18 @@ namespace GameECS
             internal event Action<T> onEvent;
             
             internal readonly List<IEcsObserver<T>> observers = new();
-            private readonly List<IEcsObserver<T>> cache = new();
+            private readonly List<IEcsObserver<T>> _cache = new();
 
             public void Invoke(int entity, T @event)
             {
                 this.onEvent?.Invoke(@event);
                 
-                this.cache.Clear();
-                this.cache.AddRange(this.observers);
+                _cache.Clear();
+                _cache.AddRange(this.observers);
 
-                for (int i = 0, count = this.cache.Count; i < count; i++)
+                for (int i = 0, count = _cache.Count; i < count; i++)
                 {
-                    var observer = this.cache[i];
+                    var observer = _cache[i];
                     observer.Handle(entity, @event);
                 }
             }

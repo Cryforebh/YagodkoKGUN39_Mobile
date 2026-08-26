@@ -5,6 +5,6 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct MoveSpeedComponent
     {
-        public float value;
+[UnityEngine.Serialization.FormerlySerializedAs("value")]         public float Value;
     }
 }

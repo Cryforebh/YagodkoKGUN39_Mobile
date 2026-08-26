@@ -18,40 +18,34 @@ namespace SampleProject
                                                       RigidbodyConstraints.FreezeRotationX |
                                                       RigidbodyConstraints.FreezeRotationZ;
 
-        private EcsPool<RigidbodyComponent> rigidbodyPool;
-        private EcsPool<HitDuration> attackPool;
-        private EcsPool<GatherDuration> gatherPool;
-
-        private bool isFreeze;
+        private EcsPool<RigidbodyComponent> _rigidbodyPool;
+        private EcsPool<HitDuration> _attackPool;
+        private EcsPool<GatherDuration> _gatherPool;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            ref var rigidbody = ref this.rigidbodyPool.GetComponent(entity).value;
-
-            var freeze = this.IsFreeze(entity);
-            
-            if (freeze && !this.isFreeze)
+            if (!_rigidbodyPool.HasComponent(entity))
             {
-                rigidbody.constraints = FREEZE;
-                this.isFreeze = true;
                 return;
             }
 
-            if (!freeze && this.isFreeze)
+            ref var rigidbody = ref _rigidbodyPool.GetComponent(entity).Value;
+            var freeze = IsFreeze(entity);
+            var constraints = freeze ? FREEZE : UNFREEZE;
+            if (rigidbody.constraints != constraints)
             {
-                rigidbody.constraints = UNFREEZE;
-                this.isFreeze = false;
+                rigidbody.constraints = constraints;
             }
         }
 
         private bool IsFreeze(int entity)
         {
-            if (this.attackPool.HasComponent(entity))
+            if (_attackPool.HasComponent(entity))
             {
                 return true;
             }
 
-            if (this.gatherPool.HasComponent(entity))
+            if (_gatherPool.HasComponent(entity))
             {
                 return true;
             }

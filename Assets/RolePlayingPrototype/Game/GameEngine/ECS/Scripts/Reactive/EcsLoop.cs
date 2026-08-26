@@ -14,48 +14,48 @@ namespace Game.GameEngine.Ecs
 
     public sealed class EcsLoop : IEcsLoop, IInitializable, ITickable, IFixedTickable, ILateTickable, IDisposable
     {
-        private readonly EcsWorld world;
-        private readonly Subject<Unit> updated = new();
-        private readonly Subject<Unit> fixedUpdated = new();
-        private readonly Subject<Unit> lateUpdated = new();
+        private readonly EcsWorld _world;
+        private readonly Subject<Unit> _updated = new();
+        private readonly Subject<Unit> _fixedUpdated = new();
+        private readonly Subject<Unit> _lateUpdated = new();
 
-        public IObservable<Unit> Updated => updated;
-        public IObservable<Unit> FixedUpdated => fixedUpdated;
-        public IObservable<Unit> LateUpdated => lateUpdated;
+        public IObservable<Unit> Updated => _updated;
+        public IObservable<Unit> FixedUpdated => _fixedUpdated;
+        public IObservable<Unit> LateUpdated => _lateUpdated;
 
         public EcsLoop(EcsWorld world)
         {
-            this.world = world;
+            _world = world;
         }
 
         public void Initialize()
         {
-            world.ResolveDependencies();
+            _world.ResolveDependencies();
         }
 
         public void Tick()
         {
-            world.Update();
-            updated.OnNext(Unit.Default);
+            _world.Update();
+            _updated.OnNext(Unit.Default);
         }
 
         public void FixedTick()
         {
-            world.FixedUpdate();
-            fixedUpdated.OnNext(Unit.Default);
+            _world.FixedUpdate();
+            _fixedUpdated.OnNext(Unit.Default);
         }
 
         public void LateTick()
         {
-            world.LateUpdate();
-            lateUpdated.OnNext(Unit.Default);
+            _world.LateUpdate();
+            _lateUpdated.OnNext(Unit.Default);
         }
 
         public void Dispose()
         {
-            updated.Dispose();
-            fixedUpdated.Dispose();
-            lateUpdated.Dispose();
+            _updated.Dispose();
+            _fixedUpdated.Dispose();
+            _lateUpdated.Dispose();
         }
     }
 }

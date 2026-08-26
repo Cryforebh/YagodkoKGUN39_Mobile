@@ -10,7 +10,7 @@ namespace Game.GameEngine.Ecs
     {
         public delegate void StateDelegate(AnimatorStateInfo state, int stateId, int layerIndex);
 
-        private static readonly int STATE_PARAMETER = Animator.StringToHash("State");
+        private static readonly int _sTATE_PARAMETER = Animator.StringToHash("State");
 
         public event StateDelegate OnStateEntered;
         public event StateDelegate OnStateExited;
@@ -21,28 +21,28 @@ namespace Game.GameEngine.Ecs
 
         public bool IsRootMotion
         {
-            get { return this.animator != null && this.animator.applyRootMotion; }
+            get { return _animator != null && _animator.applyRootMotion; }
         }
 
         public float BaseSpeed
         {
-            get { return this.baseSpeed; }
+            get { return _baseSpeed; }
         }
 
         public int CurrentState
         {
-            get { return this.stateId; }
+            get { return _stateId; }
         }
 
-        private int stateId;
+        private int _stateId;
 
-        private float baseSpeed;
+        private float _baseSpeed;
         
         [Space]
         [SerializeField]
-        private Animator animator;
+[UnityEngine.Serialization.FormerlySerializedAs("animator")]         private Animator _animator;
 
-        private readonly List<ISpeedMultiplier> speedMultipliers = new();
+        private readonly List<ISpeedMultiplier> _speedMultipliers = new();
 
         public void OnEnterState(AnimatorStateInfo state, int stateId, int layerIndex)
         {
@@ -71,8 +71,8 @@ namespace Game.GameEngine.Ecs
 
         protected virtual void Awake()
         {
-            this.stateId = this.animator.GetInteger(STATE_PARAMETER);
-            this.baseSpeed = this.animator.speed;
+            _stateId = _animator.GetInteger(_sTATE_PARAMETER);
+            _baseSpeed = _animator.speed;
         }
 
         public void PlayAnimation(string animationName, string layerName, float normalizedTime = 0)
@@ -83,82 +83,82 @@ namespace Game.GameEngine.Ecs
 
         public void PlayAnimation(int hash, string layerName, float normalizedTime = 0)
         {
-            var index = this.animator.GetLayerIndex(layerName);
+            var index = _animator.GetLayerIndex(layerName);
             this.PlayAnimation(hash, index, normalizedTime);
         }
 
         public void SetLayerWeight(int layer, float weight)
         {
-            this.animator.SetLayerWeight(layer, weight);
+            _animator.SetLayerWeight(layer, weight);
         }
 
         public void PlayAnimation(int hash, int layer, float normalizedTime = 0)
         {
-            this.animator.Play(hash, layer, normalizedTime);
+            _animator.Play(hash, layer, normalizedTime);
         }
 
         public void ChangeState(int stateId)
         {
-            if (this.stateId == stateId)
+            if (_stateId == stateId)
             {
                 return;
             }
 
-            this.stateId = stateId;
-            this.animator.SetInteger(STATE_PARAMETER, this.stateId);
+            _stateId = stateId;
+            _animator.SetInteger(_sTATE_PARAMETER, _stateId);
         }
 
         public void AddSpeedMultiplier(ISpeedMultiplier multiplier)
         {
-            this.speedMultipliers.Add(multiplier);
+            _speedMultipliers.Add(multiplier);
             this.UpdateAnimatorSpeed();
         }
 
         public void RemoveSpeedMultiplier(ISpeedMultiplier multiplier)
         {
-            this.speedMultipliers.Remove(multiplier);
+            _speedMultipliers.Remove(multiplier);
             this.UpdateAnimatorSpeed();
         }
 
         public void SetBaseSpeed(float speed)
         {
-            if (Mathf.Approximately(speed, this.baseSpeed))
+            if (Mathf.Approximately(speed, _baseSpeed))
             {
                 return;
             }
 
-            this.baseSpeed = speed;
+            _baseSpeed = speed;
             this.UpdateAnimatorSpeed();
         }
 
         public void ApplyRootMotion()
         {
-            this.animator.applyRootMotion = true;
+            _animator.applyRootMotion = true;
         }
 
         public void ResetRootMotion(bool resetPosition = true, bool resetRotation = true)
         {
-            this.animator.applyRootMotion = false;
+            _animator.applyRootMotion = false;
             if (resetPosition)
             {
-                this.animator.transform.localPosition = Vector3.zero;
+                _animator.transform.localPosition = Vector3.zero;
             }
 
             if (resetRotation)
             {
-                this.animator.transform.localRotation = Quaternion.identity;
+                _animator.transform.localRotation = Quaternion.identity;
             }
         }
 
         private void UpdateAnimatorSpeed()
         {
             var fullMultiplier = 1.0f;
-            for (int i = 0, count = this.speedMultipliers.Count; i < count; i++)
+            for (int i = 0, count = _speedMultipliers.Count; i < count; i++)
             {
-                fullMultiplier *= this.speedMultipliers[i].GetValue();
+                fullMultiplier *= _speedMultipliers[i].GetValue();
             }
 
-            this.animator.speed = this.baseSpeed * fullMultiplier;
+            _animator.speed = _baseSpeed * fullMultiplier;
         }
         
         public interface ISpeedMultiplier

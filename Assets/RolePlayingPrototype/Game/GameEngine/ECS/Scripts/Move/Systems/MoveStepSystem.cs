@@ -5,36 +5,36 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class MoveStepSystem : IEcsFixedUpdate
     {
-        private readonly EcsPool<MoveStepData> stepDataPool;
-        private readonly EcsPool<MoveSpeedComponent> speedPool;
-        private readonly EcsPool<RigidbodyComponent> rigidbodyPool;
+        private readonly EcsPool<MoveStepData> _stepDataPool;
+        private readonly EcsPool<MoveSpeedComponent> _speedPool;
+        private readonly EcsPool<RigidbodyComponent> _rigidbodyPool;
 
-        private readonly EcsEmitter<SmoothRotateEvent> rotateEmitter;
+        private readonly EcsEmitter<SmoothRotateEvent> _rotateEmitter;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            if (!this.stepDataPool.HasComponent(entity))
+            if (!EcsFilter.Matches(entity, _stepDataPool, _speedPool, _rigidbodyPool))
             {
                 return;
             }
 
-            ref var stepData = ref this.stepDataPool.GetComponent(entity);
-            if (stepData.completed)
+            ref var stepData = ref _stepDataPool.GetComponent(entity);
+            if (stepData.Completed)
             {
-                this.stepDataPool.RemoveComponent(entity);
+                _stepDataPool.RemoveComponent(entity);
                 return;
             }
 
-            this.UpdatePosition(entity, stepData.direction);
-            this.UpdateRotation(entity, stepData.direction);
+            this.UpdatePosition(entity, stepData.Direction);
+            this.UpdateRotation(entity, stepData.Direction);
 
-            stepData.completed = true;
+            stepData.Completed = true;
         }
 
         private void UpdatePosition(int entity, Vector3 direction)
         {
-            ref var rigidbody = ref this.rigidbodyPool.GetComponent(entity).value;
-            ref var moveSpeed = ref this.speedPool.GetComponent(entity).value;
+            ref var rigidbody = ref _rigidbodyPool.GetComponent(entity).Value;
+            ref var moveSpeed = ref _speedPool.GetComponent(entity).Value;
 
             var moveStep = direction * moveSpeed * Time.fixedDeltaTime;
             var newPosition = rigidbody.position + moveStep;
@@ -43,9 +43,9 @@ namespace Game.GameEngine.Ecs
 
         private void UpdateRotation(int entity, Vector3 direction)
         {
-            this.rotateEmitter.SendEvent(entity, new SmoothRotateEvent
+            _rotateEmitter.SendEvent(entity, new SmoothRotateEvent
             {
-                direction = direction
+                Direction = direction
             });
         }
     }

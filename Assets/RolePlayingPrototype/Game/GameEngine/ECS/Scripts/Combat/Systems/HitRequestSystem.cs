@@ -4,23 +4,29 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class HitRequestSystem : IEcsFixedUpdate
     {
-        private readonly EcsPool<HitRequest> requestPool;
-        private readonly EcsPool<CombatComponent> combatPool;
-        private readonly EcsPool<HitCountdown> reloadPool;
-        private readonly EcsPool<HitDuration> durationPool;
+        private readonly EcsPool<HitRequest> _requestPool;
+        private readonly EcsPool<CombatComponent> _combatPool;
+        private readonly EcsPool<HitCountdown> _reloadPool;
+        private readonly EcsPool<HitDuration> _durationPool;
         
-        private readonly EcsEmitter<TakeDamageEvent> takeDamageEmitter;
+        private readonly EcsEmitter<TakeDamageEvent> _takeDamageEmitter;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            if (!this.requestPool.HasComponent(entity))
+            if (!_requestPool.HasComponent(entity))
             {
-                this.reloadPool.RemoveComponent(entity);
-                this.durationPool.RemoveComponent(entity);
+                _reloadPool.RemoveComponent(entity);
+                _durationPool.RemoveComponent(entity);
                 return;
             }
 
-            if (this.reloadPool.HasComponent(entity) || this.durationPool.HasComponent(entity))
+            if (!_combatPool.HasComponent(entity))
+            {
+                _requestPool.RemoveComponent(entity);
+                return;
+            }
+
+            if (_reloadPool.HasComponent(entity) || _durationPool.HasComponent(entity))
             {
                 return;
             }
@@ -31,10 +37,10 @@ namespace Game.GameEngine.Ecs
 
         private void SetDuration(int entity)
         {
-            ref var hitComponent = ref this.combatPool.GetComponent(entity);
-            this.durationPool.SetComponent(entity, new HitDuration
+            ref var hitComponent = ref _combatPool.GetComponent(entity);
+            _durationPool.SetComponent(entity, new HitDuration
             {
-                remainingTime = hitComponent.animationTime
+                RemainingTime = hitComponent.AnimationTime
             });
         }
     }

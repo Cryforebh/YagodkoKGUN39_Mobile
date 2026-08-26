@@ -7,6 +7,6 @@ namespace Game.GameEngine.Ecs
     public struct RendererComponent
     {
         [SerializeField]
-        public Renderer value;
+[UnityEngine.Serialization.FormerlySerializedAs("value")]         public Renderer Value;
     }
 }

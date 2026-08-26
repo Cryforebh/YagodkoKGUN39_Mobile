@@ -1,9 +1,11 @@
+using GameECS;
+
 namespace Game.GameEngine.Ecs
 {
     public struct HitEvent
     {
-        public int targetId;
-        public int damage;
-        public DamageType damageType;
+[UnityEngine.Serialization.FormerlySerializedAs("target")]         public EntityHandle Target;
+[UnityEngine.Serialization.FormerlySerializedAs("damage")]         public int Damage;
+[UnityEngine.Serialization.FormerlySerializedAs("damageType")]         public DamageType DamageType;
     }
 }

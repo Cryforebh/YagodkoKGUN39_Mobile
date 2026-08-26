@@ -5,7 +5,7 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct HitPointsComponent
     {
-        public int max;
-        public int current;
+[UnityEngine.Serialization.FormerlySerializedAs("max")]         public int Max;
+[UnityEngine.Serialization.FormerlySerializedAs("current")]         public int Current;
     }
 }

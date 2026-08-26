@@ -1,62 +1,112 @@
 using Game.GameEngine.Ecs;
 using SampleProject;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Zenject;
 
 namespace Entities
 {
     public sealed class CharacterEntity : Entity
     {
         [SerializeField]
-        private CharacterConfig config;
+        [FormerlySerializedAs("config")]
+        private CharacterConfig _config;
+
+        [SerializeField]
+        [FormerlySerializedAs("team")]
+        private TeamId _team = TeamId.Player;
+
+        [SerializeField, Min(0), Tooltip("Set to 0 to use Hit Points from CharacterConfig.")]
+        [FormerlySerializedAs("hitPoints")]
+        private int _hitPoints;
+
+        [SerializeField, Min(0.1f)]
+        [FormerlySerializedAs("visionRange")]
+        private float _visionRange = 6f;
+
+        [SerializeField, Min(0.1f)]
+        [FormerlySerializedAs("allyAssistRange")]
+        private float _allyAssistRange = 10f;
+
+        [SerializeField, Min(0.05f)]
+        [FormerlySerializedAs("visionScanInterval")]
+        private float _visionScanInterval = 0.25f;
+
+        [SerializeField]
+        [FormerlySerializedAs("disableEnemyDetection")]
+        private bool _disableEnemyDetection;
+
+        [SerializeField, Min(0.1f)]
+        [FormerlySerializedAs("deathAnimationDuration")]
+        private float _deathAnimationDuration = 1f;
+
+        [Inject]
+        private IUnitCollisionService _unitCollisionService;
 
         protected override void Init()
         {
-            this.SetData(new SmoothRotationComponent());
+            _unitCollisionService.Register(GetComponentsInChildren<Collider>());
+            SetData(new SmoothRotationComponent());
 
-            this.SetData(new CombatComponent
+            SetData(new TeamComponent { Value = _team });
+
+            if (!_disableEnemyDetection)
             {
-                damage = this.config.damage,
-                minDistance = config.minDistance,
-                animationTime = this.config.animationTime,
-                timeBetweenAttack = this.config.timeBetweenAttack,
-                damageType = this.config.damageType
+                SetData(new VisionComponent
+                {
+                    Range = _visionRange,
+                    AssistRange = _allyAssistRange,
+                    ScanInterval = _visionScanInterval,
+                    NextScanTime = Random.Range(0f, _visionScanInterval)
+                });
+            }
+
+            SetData(new DeathSettingsComponent { Duration = _deathAnimationDuration });
+
+            SetData(new CombatComponent
+            {
+                Damage = _config.Damage,
+                MinDistance = _config.MinDistance,
+                AnimationTime = _config.AnimationTime,
+                TimeBetweenAttack = _config.TimeBetweenAttack,
+                DamageType = _config.DamageType
             });
             
-            this.SetData(new AnimatorComponent
+            SetData(new AnimatorComponent
             {
-                value = this.GetComponentInChildren<AnimatorMachine>()
+                Value = GetComponentInChildren<AnimatorMachine>()
             });
             
-            this.SetData(new HitPointsComponent
+            SetData(new HitPointsComponent
             {
-                max = this.config.hitPoints,
-                current = this.config.hitPoints
+                Max = _hitPoints > 0 ? _hitPoints : _config.HitPoints,
+                Current = _hitPoints > 0 ? _hitPoints : _config.HitPoints
             });
 
-            this.SetData(new MoveSpeedComponent
+            SetData(new MoveSpeedComponent
             {
-                value = this.config.moveSpeed
+                Value = _config.MoveSpeed
             });
 
-            this.SetData(new TransformComponent
+            SetData(new TransformComponent
             {
-                value = this.transform,
-                radius = this.config.radius
+                Value = transform,
+                Radius = _config.Radius
             });
 
-            this.SetData(new GameObjectComponent
+            SetData(new GameObjectComponent
             {
-                value = this.gameObject
+                Value = gameObject
             });
 
-            this.SetData(new RigidbodyComponent
+            SetData(new RigidbodyComponent
             {
-                value = this.GetComponent<Rigidbody>()
+                Value = GetComponent<Rigidbody>()
             });
 
-            this.SetData(new RendererComponent
+            SetData(new RendererComponent
             {
-                value = this.GetComponentInChildren<Renderer>()
+                Value = GetComponentInChildren<Renderer>()
             });
         }
     }

@@ -24,7 +24,7 @@ namespace Game.GameEngine.Ecs
 
     public sealed class EcsReactiveBus : IEcsEventSink, IEcsEventStream, IDisposable
     {
-        private readonly Dictionary<Type, object> subjects = new();
+        private readonly Dictionary<Type, object> _subjects = new();
 
         public IObservable<EcsEvent<T>> Observe<T>() where T : struct
         {
@@ -38,21 +38,21 @@ namespace Game.GameEngine.Ecs
 
         public void Dispose()
         {
-            foreach (var subject in subjects.Values)
+            foreach (var subject in _subjects.Values)
             {
                 ((IDisposable)subject).Dispose();
             }
 
-            subjects.Clear();
+            _subjects.Clear();
         }
 
         private Subject<EcsEvent<T>> GetSubject<T>() where T : struct
         {
             var type = typeof(T);
-            if (!subjects.TryGetValue(type, out var subject))
+            if (!_subjects.TryGetValue(type, out var subject))
             {
                 subject = new Subject<EcsEvent<T>>();
-                subjects.Add(type, subject);
+                _subjects.Add(type, subject);
             }
 
             return (Subject<EcsEvent<T>>)subject;

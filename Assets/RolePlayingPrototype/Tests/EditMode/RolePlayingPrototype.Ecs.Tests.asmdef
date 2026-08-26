@@ -1,0 +1,23 @@
+{
+    "name": "RolePlayingPrototype.Ecs.Tests",
+    "rootNamespace": "RolePlayingPrototype.Tests",
+    "references": [
+        "GameECS",
+        "RolePlayingPrototype.GameEngine",
+        "RolePlayingPrototype.Gameplay"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
