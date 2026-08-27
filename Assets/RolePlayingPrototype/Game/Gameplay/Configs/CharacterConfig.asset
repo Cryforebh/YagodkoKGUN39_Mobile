@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dafdee2358140319f261a2443129613, type: 3}
   m_Name: CharacterConfig
   m_EditorClassIdentifier: 
-  hitPoints: 100
-  moveSpeed: 5
-  damage: 1
-  minDistance: 1.5
-  animationTime: 1.4
-  timeBetweenAttack: 0.8
-  damageType: 0
+  Radius: 0.3
+  HitPoints: 100
+  MoveSpeed: 5
+  Damage: 1
+  MinDistance: 1.5
+  AnimationTime: 1.4
+  TimeBetweenAttack: 0.8
+  DamageType: 0

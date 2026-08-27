@@ -46,6 +46,7 @@ GameObject:
   - component: {fileID: 2968711905645229074}
   - component: {fileID: 2968711905645229078}
   - component: {fileID: 2968711905271284244}
+  - component: {fileID: 4914819759522976443}
   m_Layer: 0
   m_Name: Character
   m_TagString: Untagged
@@ -131,7 +132,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1084f3f9a9a4155ade69612d6758996, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: 32ebb214a2a9343baa29d18d039edba2, type: 2}
+  _config: {fileID: 11400000, guid: 32ebb214a2a9343baa29d18d039edba2, type: 2}
+  _team: 0
+  _hitPoints: 0
+  _visionRange: 6
+  _allyAssistRange: 10
+  _visionScanInterval: 0.25
+  _disableEnemyDetection: 0
+  _deathAnimationDuration: 1
 --- !u!114 &2968711905645229078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -156,6 +164,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 617aafdca1844a1e8d0dc827360064db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4914819759522976443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2968711905645229072}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1001 &2968711905886340527
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -263,4 +290,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 991e65ee9b0a4243a7b05b5449e0fc73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 2968711905876963535}
+  _animator: {fileID: 2968711905876963535}

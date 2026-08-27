@@ -48,6 +48,11 @@ namespace SampleProject
 
         public void Attack(EntityHandle entity, EntityHandle target)
         {
+            if (!CanAttack(entity, target))
+            {
+                return;
+            }
+
             SetCommand(entity, CommandType.ATTACK_TARGET, target);
         }
 
@@ -72,6 +77,16 @@ namespace SampleProject
         public void Dispose()
         {
             _issuedCommands.Dispose();
+        }
+
+        private bool CanAttack(EntityHandle entity, EntityHandle target)
+        {
+            if (!_world.IsEntityExists(entity) || !_world.IsEntityExists(target) || !_world.HasComponent<TeamComponent>(entity.Id) || !_world.HasComponent<TeamComponent>(target.Id))
+            {
+                return false;
+            }
+
+            return _world.GetComponent<TeamComponent>(entity.Id).Value != _world.GetComponent<TeamComponent>(target.Id).Value;
         }
 
         private void SetCommand(EntityHandle entity, CommandType type, object args)
