@@ -28,6 +28,14 @@ namespace SampleProject
         private readonly List<EntityHandle> _remainingUnits = new();
         private readonly List<Vector3> _formationSlots = new();
         private readonly List<Vector3> _adaptiveSlots = new();
+        private readonly List<GridSlot> _gridSlots = new();
+        private readonly Dictionary<long, int> _gridSlotIndices = new();
+        private readonly HashSet<long> _originalGridSlots = new();
+        private readonly HashSet<long> _acceptedGridSlots = new();
+        private readonly HashSet<long> _visitedGridSlots = new();
+        private readonly Queue<long> _gridSlotQueue = new();
+        private readonly List<long> _currentGridComponent = new();
+        private readonly List<long> _largestGridComponent = new();
         private float[,] _assignmentCosts;
         private float[] _unitPotentials;
         private float[] _slotPotentials;
@@ -118,17 +126,26 @@ namespace SampleProject
                 return false;
             }
 
-            _adaptiveSlots.Clear();
+            _gridSlots.Clear();
+            _gridSlotIndices.Clear();
+            _originalGridSlots.Clear();
             var blockedSlotFound = false;
-            for (var i = 0; i < _formationSlots.Count; i++)
+            var formationSlotIndex = 0;
+            for (var row = 0; row < rows; row++)
             {
-                if (TryResolveSlot(_formationSlots[i], out var resolvedSlot))
+                var unitsInRow = Mathf.Min(columns, count - row * columns);
+                var firstColumn = (columns - unitsInRow) / 2;
+                for (var column = firstColumn; column < firstColumn + unitsInRow; column++)
                 {
-                    AddSlotIfSeparated(resolvedSlot);
-                }
-                else
-                {
-                    blockedSlotFound = true;
+                    var candidate = _formationSlots[formationSlotIndex++];
+                    if (TryResolveSlot(candidate, out var resolvedSlot))
+                    {
+                        AddGridSlot(column, row, resolvedSlot, true);
+                    }
+                    else
+                    {
+                        blockedSlotFound = true;
+                    }
                 }
             }
 
@@ -138,33 +155,257 @@ namespace SampleProject
             }
 
             var maximumExpansion = Mathf.CeilToInt(Mathf.Sqrt(count)) + 4;
-            for (var expansion = 1; expansion <= maximumExpansion && _adaptiveSlots.Count < count; expansion++)
+            for (var expansion = 1; expansion <= maximumExpansion; expansion++)
             {
                 var minimumColumn = -expansion;
                 var maximumColumn = columns - 1 + expansion;
                 var minimumRow = -expansion;
                 var maximumRow = rows - 1 + expansion;
-                for (var row = minimumRow; row <= maximumRow && _adaptiveSlots.Count < count; row++)
+                for (var row = minimumRow; row <= maximumRow; row++)
                 {
-                    for (var column = minimumColumn; column <= maximumColumn && _adaptiveSlots.Count < count; column++)
+                    for (var column = minimumColumn; column <= maximumColumn; column++)
                     {
                         if (row != minimumRow && row != maximumRow && column != minimumColumn && column != maximumColumn)
                         {
                             continue;
                         }
 
-                        var forwardOffset = ((rows - 1) * 0.5f - row) * FormationSpacing;
-                        var rightOffset = (column - (columns - 1) * 0.5f) * FormationSpacing;
-                        var candidate = destination + forward * forwardOffset + right * rightOffset;
+                        var candidate = GetGridPosition(destination, forward, right, columns, rows, column, row);
                         if (TryResolveSlot(candidate, out var resolvedSlot))
                         {
-                            AddSlotIfSeparated(resolvedSlot);
+                            AddGridSlot(column, row, resolvedSlot, false);
                         }
+                    }
+                }
+
+                if (_gridSlots.Count < count)
+                {
+                    continue;
+                }
+
+                BuildConnectedAdaptiveFormation(destination, columns, rows, count);
+                if (_adaptiveSlots.Count == count)
+                {
+                    return true;
+                }
+            }
+
+            BuildConnectedAdaptiveFormation(destination, columns, rows, count);
+            if (_adaptiveSlots.Count == count)
+            {
+                return true;
+            }
+
+            AddDisconnectedSlots(destination, columns, rows, count);
+            return _adaptiveSlots.Count == count;
+        }
+
+        private void BuildConnectedAdaptiveFormation(Vector3 destination, int columns, int rows, int count)
+        {
+            _adaptiveSlots.Clear();
+            _acceptedGridSlots.Clear();
+            FindLargestOriginalComponent();
+            if (_largestGridComponent.Count == 0)
+            {
+                var closestSlot = 0;
+                var closestDistance = float.MaxValue;
+                for (var i = 0; i < _gridSlots.Count; i++)
+                {
+                    var distance = (_gridSlots[i].Position - destination).sqrMagnitude;
+                    if (distance < closestDistance)
+                    {
+                        closestSlot = i;
+                        closestDistance = distance;
+                    }
+                }
+
+                if (_gridSlots.Count > 0)
+                {
+                    AcceptGridSlot(GetGridKey(_gridSlots[closestSlot].Column, _gridSlots[closestSlot].Row));
+                }
+            }
+
+            for (var i = 0; i < _largestGridComponent.Count; i++)
+            {
+                AcceptGridSlot(_largestGridComponent[i]);
+            }
+
+            while (_adaptiveSlots.Count < count)
+            {
+                var bestKey = 0L;
+                var bestNeighbours = -1;
+                var bestExpansion = int.MaxValue;
+                var bestDistance = float.MaxValue;
+                for (var i = 0; i < _gridSlots.Count; i++)
+                {
+                    var slot = _gridSlots[i];
+                    var key = GetGridKey(slot.Column, slot.Row);
+                    if (_acceptedGridSlots.Contains(key))
+                    {
+                        continue;
+                    }
+
+                    var neighbours = CountAcceptedNeighbours(slot.Column, slot.Row);
+                    if (neighbours == 0)
+                    {
+                        continue;
+                    }
+
+                    var expansion = GetExpansion(slot.Column, slot.Row, columns, rows);
+                    var distance = (slot.Position - destination).sqrMagnitude;
+                    if (neighbours > bestNeighbours || neighbours == bestNeighbours && (expansion < bestExpansion || expansion == bestExpansion && distance < bestDistance))
+                    {
+                        bestKey = key;
+                        bestNeighbours = neighbours;
+                        bestExpansion = expansion;
+                        bestDistance = distance;
+                    }
+                }
+
+                if (bestNeighbours < 0)
+                {
+                    break;
+                }
+
+                AcceptGridSlot(bestKey);
+            }
+        }
+
+        private void FindLargestOriginalComponent()
+        {
+            _visitedGridSlots.Clear();
+            _largestGridComponent.Clear();
+            foreach (var startKey in _originalGridSlots)
+            {
+                if (!_visitedGridSlots.Add(startKey))
+                {
+                    continue;
+                }
+
+                _currentGridComponent.Clear();
+                _gridSlotQueue.Clear();
+                _gridSlotQueue.Enqueue(startKey);
+                while (_gridSlotQueue.Count > 0)
+                {
+                    var key = _gridSlotQueue.Dequeue();
+                    _currentGridComponent.Add(key);
+                    var slot = _gridSlots[_gridSlotIndices[key]];
+                    for (var rowOffset = -1; rowOffset <= 1; rowOffset++)
+                    {
+                        for (var columnOffset = -1; columnOffset <= 1; columnOffset++)
+                        {
+                            if (columnOffset == 0 && rowOffset == 0)
+                            {
+                                continue;
+                            }
+
+                            var neighbourKey = GetGridKey(slot.Column + columnOffset, slot.Row + rowOffset);
+                            if (_originalGridSlots.Contains(neighbourKey) && _visitedGridSlots.Add(neighbourKey))
+                            {
+                                _gridSlotQueue.Enqueue(neighbourKey);
+                            }
+                        }
+                    }
+                }
+
+                if (_currentGridComponent.Count > _largestGridComponent.Count)
+                {
+                    _largestGridComponent.Clear();
+                    _largestGridComponent.AddRange(_currentGridComponent);
+                }
+            }
+        }
+
+        private void AddDisconnectedSlots(Vector3 destination, int columns, int rows, int count)
+        {
+            while (_adaptiveSlots.Count < count)
+            {
+                var bestKey = 0L;
+                var bestExpansion = int.MaxValue;
+                var bestDistance = float.MaxValue;
+                for (var i = 0; i < _gridSlots.Count; i++)
+                {
+                    var slot = _gridSlots[i];
+                    var key = GetGridKey(slot.Column, slot.Row);
+                    if (_acceptedGridSlots.Contains(key))
+                    {
+                        continue;
+                    }
+
+                    var expansion = GetExpansion(slot.Column, slot.Row, columns, rows);
+                    var distance = (slot.Position - destination).sqrMagnitude;
+                    if (expansion < bestExpansion || expansion == bestExpansion && distance < bestDistance)
+                    {
+                        bestKey = key;
+                        bestExpansion = expansion;
+                        bestDistance = distance;
+                    }
+                }
+
+                if (bestExpansion == int.MaxValue)
+                {
+                    break;
+                }
+
+                AcceptGridSlot(bestKey);
+            }
+        }
+
+        private void AddGridSlot(int column, int row, Vector3 position, bool isOriginal)
+        {
+            var key = GetGridKey(column, row);
+            _gridSlotIndices.Add(key, _gridSlots.Count);
+            _gridSlots.Add(new GridSlot(column, row, position));
+            if (isOriginal)
+            {
+                _originalGridSlots.Add(key);
+            }
+        }
+
+        private void AcceptGridSlot(long key)
+        {
+            if (!_acceptedGridSlots.Add(key))
+            {
+                return;
+            }
+
+            AddSlotIfSeparated(_gridSlots[_gridSlotIndices[key]].Position);
+        }
+
+        private int CountAcceptedNeighbours(int column, int row)
+        {
+            var count = 0;
+            for (var rowOffset = -1; rowOffset <= 1; rowOffset++)
+            {
+                for (var columnOffset = -1; columnOffset <= 1; columnOffset++)
+                {
+                    if ((columnOffset != 0 || rowOffset != 0) && _acceptedGridSlots.Contains(GetGridKey(column + columnOffset, row + rowOffset)))
+                    {
+                        count++;
                     }
                 }
             }
 
-            return _adaptiveSlots.Count == count;
+            return count;
+        }
+
+        private int GetExpansion(int column, int row, int columns, int rows)
+        {
+            var columnExpansion = Mathf.Max(0, -column, column - columns + 1);
+            var rowExpansion = Mathf.Max(0, -row, row - rows + 1);
+            return Mathf.Max(columnExpansion, rowExpansion);
+        }
+
+        private Vector3 GetGridPosition(Vector3 destination, Vector3 forward, Vector3 right, int columns, int rows, int column, int row)
+        {
+            var forwardOffset = ((rows - 1) * 0.5f - row) * FormationSpacing;
+            var rightOffset = (column - (columns - 1) * 0.5f) * FormationSpacing;
+            return destination + forward * forwardOffset + right * rightOffset;
+        }
+
+        private long GetGridKey(int column, int row)
+        {
+            return (long)column << 32 | (uint)row;
         }
 
         private bool TryResolveSlot(Vector3 slot, out Vector3 resolvedSlot)
@@ -309,6 +550,20 @@ namespace SampleProject
         {
             var position = _world.GetPool<TransformComponent>().GetComponent(unit.Id).Value.position;
             return Vector3.Dot(position - origin, axis);
+        }
+
+        private readonly struct GridSlot
+        {
+            public readonly int Column;
+            public readonly int Row;
+            public readonly Vector3 Position;
+
+            public GridSlot(int column, int row, Vector3 position)
+            {
+                Column = column;
+                Row = row;
+                Position = position;
+            }
         }
 
         public void Attack(EntityHandle target)
