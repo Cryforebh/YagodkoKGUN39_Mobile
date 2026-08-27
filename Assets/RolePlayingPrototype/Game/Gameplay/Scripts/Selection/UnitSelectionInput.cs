@@ -3,6 +3,8 @@ using Game.GameEngine.Ecs;
 using GameECS;
 using SampleProject.ResourceObject;
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using Zenject;
@@ -25,17 +27,20 @@ namespace SampleProject
 
         private IUnitSelectionService _selection;
         private IGroupCommandService _commands;
+        private IPatrolRouteEditor _patrolRouteEditor;
         private EcsWorld _world;
         private Camera _worldCamera;
         private readonly List<EntityHandle> _entityBuffer = new();
+        private readonly List<RaycastResult> _uiRaycastResults = new();
         private Vector2 _dragStart;
         private bool _isDragging;
 
         [Inject]
-        private void Construct(IUnitSelectionService unitSelection, IGroupCommandService groupCommands, EcsWorld ecsWorld)
+        private void Construct(IUnitSelectionService unitSelection, IGroupCommandService groupCommands, IPatrolRouteEditor patrolRouteEditor, EcsWorld ecsWorld)
         {
             _selection = unitSelection;
             _commands = groupCommands;
+            _patrolRouteEditor = patrolRouteEditor;
             _world = ecsWorld;
         }
 
@@ -100,13 +105,29 @@ namespace SampleProject
 
             _isDragging = false;
             var pointer = _pointerPosition.ReadValue<Vector2>();
+            var isTouch = context.control.device is Touchscreen;
+            if (IsPointerOverUi(pointer))
+            {
+                return;
+            }
+
+            if (_patrolRouteEditor.IsEditing)
+            {
+                if (Vector2.Distance(_dragStart, pointer) < DragThreshold)
+                {
+                    TryAddPatrolPoint();
+                }
+
+                return;
+            }
+
             if (Vector2.Distance(_dragStart, pointer) >= DragThreshold)
             {
                 SelectInRect(GetScreenRect(_dragStart, pointer));
                 return;
             }
 
-            HandlePrimaryPress(context.control.device is Touchscreen);
+            HandlePrimaryPress(isTouch);
         }
 
         private void HandlePrimaryPress(bool isTouch)
@@ -175,7 +196,7 @@ namespace SampleProject
 
         private void OnCommandPress(InputAction.CallbackContext context)
         {
-            if (_selection.Selected.Count == 0 || !TryGetPointerHit(out var hit, out var groundPoint))
+            if (_patrolRouteEditor.IsEditing || _selection.Selected.Count == 0 || !TryGetPointerHit(out var hit, out var groundPoint))
             {
                 return;
             }
@@ -195,6 +216,46 @@ namespace SampleProject
             }
 
             _commands.Move(groundPoint);
+        }
+
+        private void TryAddPatrolPoint()
+        {
+            if (_patrolRouteEditor.PointCount >= PatrolRouteEditor.MaximumPointCount || !TryGetPointerHit(out var hit, out var groundPoint))
+            {
+                return;
+            }
+
+            if (hit.collider != null && hit.collider.GetComponentInParent<Entity>() != null)
+            {
+                return;
+            }
+
+            const float probeDistance = 0.15f;
+            if (!NavMesh.SamplePosition(groundPoint, out var navMeshHit, probeDistance, NavMesh.AllAreas))
+            {
+                return;
+            }
+
+            var horizontalOffset = Vector3.ProjectOnPlane(navMeshHit.position - groundPoint, Vector3.up);
+            if (horizontalOffset.sqrMagnitude > probeDistance * probeDistance || Mathf.Abs(navMeshHit.position.y - groundPoint.y) > 0.25f)
+            {
+                return;
+            }
+
+            _patrolRouteEditor.AddPoint(navMeshHit.position);
+        }
+
+        private bool IsPointerOverUi(Vector2 pointerPosition)
+        {
+            if (EventSystem.current == null)
+            {
+                return false;
+            }
+
+            var eventData = new PointerEventData(EventSystem.current) { position = pointerPosition };
+            _uiRaycastResults.Clear();
+            EventSystem.current.RaycastAll(eventData, _uiRaycastResults);
+            return _uiRaycastResults.Count > 0;
         }
 
         private bool TryGetPointerHit(out RaycastHit hit, out Vector3 groundPoint)

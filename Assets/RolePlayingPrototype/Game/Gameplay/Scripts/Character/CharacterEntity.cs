@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.GameEngine.Ecs;
 using SampleProject;
 using UnityEngine;
@@ -35,6 +36,10 @@ namespace Entities
         [SerializeField]
         [FormerlySerializedAs("disableEnemyDetection")]
         private bool _disableEnemyDetection;
+
+        [SerializeField]
+        [Tooltip("Optional world-space patrol route used when this scene unit is created. Maximum 6 points.")]
+        private Vector3[] _initialPatrolPoints = System.Array.Empty<Vector3>();
 
         [SerializeField, Min(0.1f)]
         [FormerlySerializedAs("deathAnimationDuration")]
@@ -108,6 +113,36 @@ namespace Entities
             {
                 Value = GetComponentInChildren<Renderer>()
             });
+
+            SetInitialPatrol();
+        }
+
+        private void OnValidate()
+        {
+            if (_initialPatrolPoints != null && _initialPatrolPoints.Length > PatrolRouteEditor.MaximumPointCount)
+            {
+                System.Array.Resize(ref _initialPatrolPoints, PatrolRouteEditor.MaximumPointCount);
+            }
+        }
+
+        private void SetInitialPatrol()
+        {
+            if (_initialPatrolPoints == null || _initialPatrolPoints.Length == 0)
+            {
+                return;
+            }
+
+            var points = new List<Vector3>(_initialPatrolPoints.Length);
+            for (var i = 0; i < _initialPatrolPoints.Length; i++)
+            {
+                points.Add(_initialPatrolPoints[i]);
+            }
+
+            if (points.Count > 0)
+            {
+                SetData(new PatrolRouteComponent { Points = new List<Vector3>(points) });
+                SetData(new CommandRequest { Type = CommandType.PATROL_BY_POINTS, Status = CommandStatus.IDLE, Args = points });
+            }
         }
     }
 }

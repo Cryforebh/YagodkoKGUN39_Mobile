@@ -43,6 +43,7 @@ namespace SampleProject
 
         public void Move(EntityHandle entity, Vector3 position)
         {
+            ClearPatrolRoute(entity);
             SetCommand(entity, CommandType.MOVE_TO_POSITION, position);
         }
 
@@ -53,21 +54,33 @@ namespace SampleProject
                 return;
             }
 
+            ClearPatrolRoute(entity);
             SetCommand(entity, CommandType.ATTACK_TARGET, target);
         }
 
         public void Gather(EntityHandle entity, EntityHandle resource)
         {
+            ClearPatrolRoute(entity);
             SetCommand(entity, CommandType.GATHER_RESOURCE, resource);
         }
 
         public void Patrol(EntityHandle entity, IReadOnlyList<Vector3> points)
         {
-            SetCommand(entity, CommandType.PATROL_BY_POINTS, new List<Vector3>(points));
+            if (!_world.IsEntityExists(entity) || points.Count == 0)
+            {
+                Stop(entity);
+                return;
+            }
+
+            var route = new List<Vector3>(points);
+            var patrolRoute = new PatrolRouteComponent { Points = route };
+            _world.SetComponent(entity.Id, ref patrolRoute);
+            SetCommand(entity, CommandType.PATROL_BY_POINTS, new List<Vector3>(route));
         }
 
         public void Stop(EntityHandle entity)
         {
+            ClearPatrolRoute(entity);
             if (_world.IsEntityExists(entity) && _world.HasComponent<CommandRequest>(entity.Id))
             {
                 _world.RemoveComponent<CommandRequest>(entity.Id);
@@ -104,6 +117,14 @@ namespace SampleProject
             };
             _world.SetComponent(entity.Id, ref command);
             _issuedCommands.OnNext(new IssuedEntityCommand(entity, type));
+        }
+
+        private void ClearPatrolRoute(EntityHandle entity)
+        {
+            if (_world.IsEntityExists(entity) && _world.HasComponent<PatrolRouteComponent>(entity.Id))
+            {
+                _world.RemoveComponent<PatrolRouteComponent>(entity.Id);
+            }
         }
     }
 }

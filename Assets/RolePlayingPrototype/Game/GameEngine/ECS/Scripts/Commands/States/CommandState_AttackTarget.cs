@@ -5,7 +5,6 @@ namespace Game.GameEngine.Ecs
     public sealed class CommandState_AttackTarget : CommandState
     {
         private EcsPool<AttackTarget> _attackPool;
-        private EcsPool<AttackSlotComponent> _attackSlotPool;
 
         private EcsPool<HitRequest> _hitRequestPool;
         private EcsPool<MoveToPositionData> _moveToPositionPool;
@@ -29,7 +28,6 @@ namespace Game.GameEngine.Ecs
         public override void Exit(int entity)
         {
             _attackPool.RemoveComponent(entity);
-            _attackSlotPool.RemoveComponent(entity);
             _hitRequestPool.RemoveComponent(entity);
             _moveToPositionPool.RemoveComponent(entity);
         }

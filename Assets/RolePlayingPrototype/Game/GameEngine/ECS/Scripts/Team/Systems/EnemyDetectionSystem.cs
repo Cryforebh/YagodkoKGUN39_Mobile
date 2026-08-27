@@ -14,7 +14,7 @@ namespace Game.GameEngine.Ecs
         private EcsPool<HitPointsComponent> _hitPointsPool;
         private EcsPool<CommandRequest> _commandPool;
         private EcsPool<AttackTarget> _attackTargetPool;
-        private EcsPool<AttackSlotComponent> _attackSlotPool;
+        private EcsPool<PatrolRouteComponent> _patrolRoutePool;
         private EcsWorld _world;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
@@ -25,8 +25,17 @@ namespace Game.GameEngine.Ecs
             }
 
             var hasCommand = _commandPool.HasComponent(entity);
+            var hasPatrolRoute = _patrolRoutePool.HasComponent(entity);
+            if (hasPatrolRoute && !hasCommand)
+            {
+                ResumePatrol(entity);
+                return;
+            }
+
+            var isPatrolCommand = hasPatrolRoute && hasCommand && _commandPool.GetComponent(entity).Type == CommandType.PATROL_BY_POINTS;
+            var isPatrolCombat = hasPatrolRoute && _attackTargetPool.HasComponent(entity);
             var canRetarget = _teamPool.GetComponent(entity).Value == TeamId.Enemy && _attackTargetPool.HasComponent(entity);
-            if (hasCommand && !canRetarget)
+            if (hasCommand && !canRetarget && !isPatrolCommand && !isPatrolCombat)
             {
                 return;
             }
@@ -41,19 +50,56 @@ namespace Game.GameEngine.Ecs
             var target = FindNearestEnemy(entity, vision.Range);
             if (target == EntityHandle.Invalid)
             {
+                if (isPatrolCombat)
+                {
+                    ResumePatrol(entity);
+                }
+
                 return;
             }
 
-            if (canRetarget)
+            if (isPatrolCombat || canRetarget)
             {
-                RetargetIfCloser(entity, target);
+                RetargetIfCloser(entity, target, vision.Range);
                 return;
+            }
+
+            if (isPatrolCommand)
+            {
+                StartPatrolCombat(entity, target);
             }
 
             AlertNearbyAllies(entity, target, vision.AssistRange);
         }
 
-        private void RetargetIfCloser(int entity, EntityHandle candidate)
+        private void StartPatrolCombat(int entity, EntityHandle target)
+        {
+            _commandPool.SetComponent(entity, new CommandRequest
+            {
+                Type = CommandType.ATTACK_TARGET,
+                Status = CommandStatus.IDLE,
+                Args = target
+            });
+        }
+
+        private void ResumePatrol(int entity)
+        {
+            var points = _patrolRoutePool.GetComponent(entity).Points;
+            if (points == null || points.Count == 0)
+            {
+                _patrolRoutePool.RemoveComponent(entity);
+                return;
+            }
+
+            _commandPool.SetComponent(entity, new CommandRequest
+            {
+                Type = CommandType.PATROL_BY_POINTS,
+                Status = CommandStatus.IDLE,
+                Args = new List<Vector3>(points)
+            });
+        }
+
+        private void RetargetIfCloser(int entity, EntityHandle candidate, float visionRange)
         {
             ref var currentTarget = ref _attackTargetPool.GetComponent(entity).Target;
             if (candidate == currentTarget)
@@ -69,13 +115,12 @@ namespace Game.GameEngine.Ecs
                 currentDistance = Vector3.Distance(_transformPool.GetComponent(currentTarget.Id).Value.position, position);
             }
 
-            if (candidateDistance + RetargetDistanceAdvantage >= currentDistance)
+            if (currentDistance <= visionRange && candidateDistance + RetargetDistanceAdvantage >= currentDistance)
             {
                 return;
             }
 
             currentTarget = candidate;
-            _attackSlotPool.RemoveComponent(entity);
         }
 
         private EntityHandle FindNearestEnemy(int observer, float range)
