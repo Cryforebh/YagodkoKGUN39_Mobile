@@ -6,6 +6,8 @@ namespace SampleProject
 {
     public sealed class CharacterAnimatorSystem : IEcsUpdate
     {
+        private const float MinimumMovementDistance = 0.005f;
+
         private EcsPool<AnimatorComponent> _animatorPool;
 
         private EcsPool<MoveStepData> _moveStep;
@@ -59,7 +61,7 @@ namespace SampleProject
             }
 
             var position = _transformPool.GetComponent(entity).Value.position;
-            if (_positionInitialized && Vector3.ProjectOnPlane(position - _lastPosition, Vector3.up).sqrMagnitude > 0.000001f)
+            if (_positionInitialized && Vector3.ProjectOnPlane(position - _lastPosition, Vector3.up).sqrMagnitude > MinimumMovementDistance * MinimumMovementDistance)
             {
                 _movingUntil = Time.time + 0.15f;
             }

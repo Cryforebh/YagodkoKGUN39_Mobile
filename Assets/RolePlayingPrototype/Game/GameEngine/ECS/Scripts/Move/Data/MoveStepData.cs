@@ -6,7 +6,13 @@ namespace Game.GameEngine.Ecs
     [Serializable]
     public struct MoveStepData
     {
-[UnityEngine.Serialization.FormerlySerializedAs("direction")]         public Vector3 Direction;
-[UnityEngine.Serialization.FormerlySerializedAs("completed")]         public bool Completed;
+        [UnityEngine.Serialization.FormerlySerializedAs("direction")]
+        public Vector3 Direction;
+
+        [NonSerialized]
+        public Vector3 PreferredDirection;
+
+        [UnityEngine.Serialization.FormerlySerializedAs("completed")]
+        public bool Completed;
     }
 }

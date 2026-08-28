@@ -28,9 +28,11 @@ namespace Game.GameEngine.Ecs
                 return;
             }
 
+            var direction = distanceVector.normalized;
             _moveStepPool.SetComponent(entity, new MoveStepData
             {
-                Direction = distanceVector.normalized
+                Direction = direction,
+                PreferredDirection = direction
             });
         }
     }

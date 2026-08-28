@@ -10,7 +10,8 @@ namespace Game.GameEngine.Ecs
 
         private EcsPool<MoveToPositionData> _moveToPositionPool;
         private EcsPool<MoveRouteData> _moveRoutePool;
-        private EcsPool<TransformComponent> _transformPool;
+        private Vector3 _directDestination;
+        private bool _hasDirectDestination;
 
         public override bool MatchesType(CommandType type)
         {
@@ -19,6 +20,7 @@ namespace Game.GameEngine.Ecs
 
         public override void Enter(int entity, object args)
         {
+            _hasDirectDestination = false;
             if (args is MoveRouteCommand routeCommand)
             {
                 _moveRoutePool.SetComponent(entity, new MoveRouteData
@@ -31,15 +33,29 @@ namespace Game.GameEngine.Ecs
                 return;
             }
 
+            if (args is not Vector3 destination)
+            {
+                this.Fail(entity);
+                return;
+            }
+
+            _directDestination = destination;
+            _hasDirectDestination = true;
             _moveToPositionPool.SetComponent(entity, new MoveToPositionData
             {
-                Destination = (Vector3) args,
+                Destination = destination,
                 StoppingDistance = STOPPING_DISTANCE
             });
         }
 
         public override void Update(int entity)
         {
+            if (!_moveToPositionPool.HasComponent(entity) && !TryRestoreMovement(entity))
+            {
+                this.Fail(entity);
+                return;
+            }
+
             ref var moveData = ref _moveToPositionPool.GetComponent(entity);
             if (moveData.IsReached)
             {
@@ -66,6 +82,28 @@ namespace Game.GameEngine.Ecs
         {
             _moveToPositionPool.RemoveComponent(entity);
             _moveRoutePool.RemoveComponent(entity);
+            _hasDirectDestination = false;
+        }
+
+        private bool TryRestoreMovement(int entity)
+        {
+            if (_moveRoutePool.HasComponent(entity))
+            {
+                SetRouteDestination(entity);
+                return true;
+            }
+
+            if (!_hasDirectDestination)
+            {
+                return false;
+            }
+
+            _moveToPositionPool.SetComponent(entity, new MoveToPositionData
+            {
+                Destination = _directDestination,
+                StoppingDistance = STOPPING_DISTANCE
+            });
+            return true;
         }
 
         private void SetRouteDestination(int entity)
