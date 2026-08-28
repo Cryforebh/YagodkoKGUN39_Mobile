@@ -52,13 +52,34 @@ namespace Game.GameEngine.Ecs
             {
                 if (isPatrolCombat)
                 {
-                    ResumePatrol(entity);
+                    var currentTarget = _attackTargetPool.GetComponent(entity).Target;
+                    var group = _patrolRoutePool.GetComponent(entity).Group;
+                    if (group != null && !IsTargetVisibleToPatrolGroup(group, currentTarget) && TryFindPatrolGroupTarget(group, out var groupTarget))
+                    {
+                        StartPatrolCombat(entity, groupTarget);
+                    }
+                    else if (group == null || !IsTargetVisibleToPatrolGroup(group, currentTarget))
+                    {
+                        ResumePatrolGroup(entity, group);
+                    }
                 }
 
                 return;
             }
 
-            if (isPatrolCombat || canRetarget)
+            if (isPatrolCombat)
+            {
+                var currentTarget = _attackTargetPool.GetComponent(entity).Target;
+                var group = _patrolRoutePool.GetComponent(entity).Group;
+                if (group == null || !IsTargetVisibleToPatrolGroup(group, currentTarget))
+                {
+                    StartPatrolCombat(entity, target);
+                }
+
+                return;
+            }
+
+            if (canRetarget)
             {
                 RetargetIfCloser(entity, target, vision.Range);
                 return;
@@ -74,12 +95,152 @@ namespace Game.GameEngine.Ecs
 
         private void StartPatrolCombat(int entity, EntityHandle target)
         {
+            var route = _patrolRoutePool.GetComponent(entity);
+            var group = route.Group;
+            if (group == null)
+            {
+                SetAttackCommand(entity, target);
+                return;
+            }
+
+            var team = _teamPool.GetComponent(entity).Value;
+            foreach (var member in group.Members)
+            {
+                if (!_world.IsEntityExists(member) || !_patrolRoutePool.HasComponent(member.Id) ||
+                    _patrolRoutePool.GetComponent(member.Id).Group != group || !_teamPool.HasComponent(member.Id) ||
+                    _teamPool.GetComponent(member.Id).Value != team || !_hitPointsPool.HasComponent(member.Id) ||
+                    _hitPointsPool.GetComponent(member.Id).Current <= 0)
+                {
+                    continue;
+                }
+
+                if (TryGetAssignedTarget(member.Id, out var assignedTarget) && IsTargetVisibleToPatrolGroup(group, assignedTarget))
+                {
+                    continue;
+                }
+
+                var memberTarget = EntityHandle.Invalid;
+                if (_visionPool.HasComponent(member.Id))
+                {
+                    memberTarget = FindNearestEnemyFromBuffer(member.Id, _visionPool.GetComponent(member.Id).Range);
+                }
+
+                SetAttackCommand(member.Id, memberTarget != EntityHandle.Invalid ? memberTarget : target);
+            }
+        }
+
+        private bool TryGetAssignedTarget(int entity, out EntityHandle target)
+        {
+            if (_commandPool.HasComponent(entity))
+            {
+                var command = _commandPool.GetComponent(entity);
+                if (command.Type == CommandType.ATTACK_TARGET && command.Args is EntityHandle requestedTarget && IsValidTarget(requestedTarget))
+                {
+                    target = requestedTarget;
+                    return true;
+                }
+            }
+
+            if (_attackTargetPool.HasComponent(entity))
+            {
+                var currentTarget = _attackTargetPool.GetComponent(entity).Target;
+                if (IsValidTarget(currentTarget))
+                {
+                    target = currentTarget;
+                    return true;
+                }
+            }
+
+            target = EntityHandle.Invalid;
+            return false;
+        }
+
+        private bool IsValidTarget(EntityHandle target)
+        {
+            return _world.IsEntityExists(target) && _transformPool.HasComponent(target.Id) &&
+                   _hitPointsPool.HasComponent(target.Id) && _hitPointsPool.GetComponent(target.Id).Current > 0;
+        }
+
+        private void SetAttackCommand(int entity, EntityHandle target)
+        {
             _commandPool.SetComponent(entity, new CommandRequest
             {
                 Type = CommandType.ATTACK_TARGET,
                 Status = CommandStatus.IDLE,
                 Args = target
             });
+        }
+
+        private bool IsTargetVisibleToPatrolGroup(PatrolGroupState group, EntityHandle target)
+        {
+            if (!IsValidTarget(target))
+            {
+                return false;
+            }
+
+            var targetPosition = _transformPool.GetComponent(target.Id).Value.position;
+            foreach (var member in group.Members)
+            {
+                if (!_world.IsEntityExists(member) || !_visionPool.HasComponent(member.Id) ||
+                    !_transformPool.HasComponent(member.Id) || !_hitPointsPool.HasComponent(member.Id) ||
+                    _hitPointsPool.GetComponent(member.Id).Current <= 0)
+                {
+                    continue;
+                }
+
+                var range = _visionPool.GetComponent(member.Id).Range;
+                var distance = (_transformPool.GetComponent(member.Id).Value.position - targetPosition).sqrMagnitude;
+                if (distance <= range * range)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryFindPatrolGroupTarget(PatrolGroupState group, out EntityHandle target)
+        {
+            _world.GetActiveEntities(_entities);
+            foreach (var member in group.Members)
+            {
+                if (!_world.IsEntityExists(member) || !_visionPool.HasComponent(member.Id) ||
+                    !_transformPool.HasComponent(member.Id) || !_hitPointsPool.HasComponent(member.Id) ||
+                    _hitPointsPool.GetComponent(member.Id).Current <= 0)
+                {
+                    continue;
+                }
+
+                target = FindNearestEnemyFromBuffer(member.Id, _visionPool.GetComponent(member.Id).Range);
+                if (target != EntityHandle.Invalid)
+                {
+                    return true;
+                }
+            }
+
+            target = EntityHandle.Invalid;
+            return false;
+        }
+
+        private void ResumePatrolGroup(int entity, PatrolGroupState group)
+        {
+            if (group == null)
+            {
+                ResumePatrol(entity);
+                return;
+            }
+
+            foreach (var member in group.Members)
+            {
+                if (!_world.IsEntityExists(member) || !_patrolRoutePool.HasComponent(member.Id) ||
+                    _patrolRoutePool.GetComponent(member.Id).Group != group || !_hitPointsPool.HasComponent(member.Id) ||
+                    _hitPointsPool.GetComponent(member.Id).Current <= 0)
+                {
+                    continue;
+                }
+
+                ResumePatrol(member.Id);
+            }
         }
 
         private void ResumePatrol(int entity)
@@ -125,11 +286,16 @@ namespace Game.GameEngine.Ecs
 
         private EntityHandle FindNearestEnemy(int observer, float range)
         {
+            _world.GetActiveEntities(_entities);
+            return FindNearestEnemyFromBuffer(observer, range);
+        }
+
+        private EntityHandle FindNearestEnemyFromBuffer(int observer, float range)
+        {
             var observerTeam = _teamPool.GetComponent(observer).Value;
             var observerPosition = _transformPool.GetComponent(observer).Value.position;
             var bestDistance = range * range;
             var result = EntityHandle.Invalid;
-            _world.GetActiveEntities(_entities);
 
             for (var i = 0; i < _entities.Count; i++)
             {
