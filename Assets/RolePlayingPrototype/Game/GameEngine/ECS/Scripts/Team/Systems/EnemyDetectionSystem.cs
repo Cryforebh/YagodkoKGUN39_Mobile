@@ -15,6 +15,7 @@ namespace Game.GameEngine.Ecs
         private EcsPool<CommandRequest> _commandPool;
         private EcsPool<AttackTarget> _attackTargetPool;
         private EcsPool<PatrolRouteComponent> _patrolRoutePool;
+        private EcsPool<AssaultOrderData> _assaultOrderPool;
         private EcsWorld _world;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
@@ -35,7 +36,9 @@ namespace Game.GameEngine.Ecs
             var isPatrolCommand = hasPatrolRoute && hasCommand && _commandPool.GetComponent(entity).Type == CommandType.PATROL_BY_POINTS;
             var isPatrolCombat = hasPatrolRoute && _attackTargetPool.HasComponent(entity);
             var canRetarget = _teamPool.GetComponent(entity).Value == TeamId.Enemy && _attackTargetPool.HasComponent(entity);
-            if (hasCommand && !canRetarget && !isPatrolCommand && !isPatrolCombat)
+            var isAssaultMove = _assaultOrderPool.HasComponent(entity) && hasCommand &&
+                                _commandPool.GetComponent(entity).Type == CommandType.MOVE_TO_POSITION;
+            if (hasCommand && !canRetarget && !isPatrolCommand && !isPatrolCombat && !isAssaultMove)
             {
                 return;
             }
@@ -88,6 +91,10 @@ namespace Game.GameEngine.Ecs
             if (isPatrolCommand)
             {
                 StartPatrolCombat(entity, target);
+            }
+            else if (isAssaultMove)
+            {
+                SetAttackCommand(entity, target);
             }
 
             AlertNearbyAllies(entity, target, vision.AssistRange);
@@ -330,9 +337,19 @@ namespace Game.GameEngine.Ecs
             for (var i = 0; i < _entities.Count; i++)
             {
                 var ally = _entities[i];
-                if (!EcsFilter.Matches(ally.Id, _teamPool, _transformPool, _hitPointsPool) || _commandPool.HasComponent(ally.Id))
+                if (!EcsFilter.Matches(ally.Id, _teamPool, _transformPool, _hitPointsPool))
                 {
                     continue;
+                }
+
+                if (_commandPool.HasComponent(ally.Id))
+                {
+                    var command = _commandPool.GetComponent(ally.Id);
+                    var isAssaultMove = _assaultOrderPool.HasComponent(ally.Id) && command.Type == CommandType.MOVE_TO_POSITION;
+                    if (!isAssaultMove)
+                    {
+                        continue;
+                    }
                 }
 
                 if (_teamPool.GetComponent(ally.Id).Value != observerTeam || _hitPointsPool.GetComponent(ally.Id).Current <= 0)

@@ -19,7 +19,9 @@ namespace Game.GameEngine.Ecs
             world.DeclareComponent<PatrolData>();
             world.DeclareComponent<PatrolRouteComponent>();
             world.DeclareComponent<PatrolNavigationData>();
+            world.DeclareComponent<AssaultOrderData>();
 
+            world.DeclareSystem<AssaultOrderSystem>();
             world.DeclareSystem<PatrolPointsSystem>();
             world.DeclareSystem<MoveToPositionSystem>();
             world.DeclareSystem<UnitSeparationSystem>();
