@@ -8,12 +8,12 @@ namespace SampleProject
 {
     public sealed class UnitGroupSpawner : IInitializable
     {
-        private readonly DiContainer _container;
+        private readonly IUnitPoolService _unitPool;
         private readonly UnitSpawnSettings _settings;
 
-        public UnitGroupSpawner(DiContainer container, UnitSpawnSettings settings)
+        public UnitGroupSpawner(IUnitPoolService unitPool, UnitSpawnSettings settings)
         {
-            _container = container;
+            _unitPool = unitPool;
             _settings = settings;
         }
 
@@ -27,12 +27,13 @@ namespace SampleProject
             var count = Mathf.Max(0, _settings.Count);
             var columns = Mathf.Max(1, _settings.Columns);
             var spacing = Mathf.Max(0.5f, _settings.Spacing);
+            _unitPool.Prewarm(_settings.Prefab, count);
             for (var index = 0; index < count; index++)
             {
                 var row = index / columns;
                 var column = index % columns;
                 var offset = new Vector3(column * spacing, 0f, row * spacing);
-                _container.InstantiatePrefab(_settings.Prefab, _settings.Origin + offset, Quaternion.identity, _settings.Parent);
+                _unitPool.Spawn(_settings.Prefab, _settings.Origin + offset, Quaternion.identity, _settings.Parent);
             }
         }
     }

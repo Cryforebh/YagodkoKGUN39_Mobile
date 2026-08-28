@@ -6,8 +6,8 @@ namespace SampleProject
 {
     public interface IGameObjectPool
     {
-        GameObject Get(string poolId, Func<GameObject> factory, Transform parent = null);
-        void Release(string poolId, GameObject instance);
+        GameObject Get(string poolId, Func<GameObject> factory, Transform parent = null, Action<GameObject> prepare = null);
+        void Release(string poolId, GameObject instance, bool moveToPoolRoot = true);
         void Prewarm(string poolId, int count, Func<GameObject> factory);
     }
 
@@ -25,7 +25,7 @@ namespace SampleProject
             GetRoot();
         }
 
-        public GameObject Get(string poolId, Func<GameObject> factory, Transform parent = null)
+        public GameObject Get(string poolId, Func<GameObject> factory, Transform parent = null, Action<GameObject> prepare = null)
         {
             if (_isDisposed)
             {
@@ -61,12 +61,14 @@ namespace SampleProject
                 _instances.Add(instance);
             }
 
+            instance.SetActive(false);
             instance.transform.SetParent(parent, false);
+            prepare?.Invoke(instance);
             instance.SetActive(true);
             return instance;
         }
 
-        public void Release(string poolId, GameObject instance)
+        public void Release(string poolId, GameObject instance, bool moveToPoolRoot = true)
         {
             if (instance == null)
             {
@@ -86,14 +88,18 @@ namespace SampleProject
 
             var currentParent = instance.transform.parent;
             var parentIsInactive = currentParent != null && !currentParent.gameObject.activeInHierarchy;
-            instance.SetActive(false);
+            if (moveToPoolRoot)
+            {
+                instance.SetActive(false);
+            }
+
             var root = GetRoot();
             if (root == null)
             {
                 return;
             }
 
-            if (!parentIsInactive)
+            if (moveToPoolRoot && !parentIsInactive)
             {
                 instance.transform.SetParent(root, false);
             }
@@ -142,7 +148,7 @@ namespace SampleProject
             _isDisposed = true;
             foreach (var instance in _instances)
             {
-                if (instance != null && !_inactiveInstances.Contains(instance))
+                if (instance != null && (_root == null || !instance.transform.IsChildOf(_root)))
                 {
                     UnityEngine.Object.Destroy(instance);
                 }

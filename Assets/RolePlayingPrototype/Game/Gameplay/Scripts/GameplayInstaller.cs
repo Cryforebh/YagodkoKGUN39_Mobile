@@ -23,6 +23,7 @@ namespace SampleProject
             Container.BindInterfacesAndSelfTo<ContextCommandResolver>().AsSingle();
             Container.BindInterfacesAndSelfTo<UnitCollisionService>().AsSingle();
             Container.BindInterfacesAndSelfTo<GameObjectPool>().AsSingle();
+            Container.BindInterfacesAndSelfTo<UnitPoolService>().AsSingle();
             Container.BindInterfacesAndSelfTo<UnitSelectionPresenter>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<PatrolRouteEditor>().AsSingle();
             Container.BindInterfacesAndSelfTo<PatrolHudPresenter>().AsSingle().NonLazy();
