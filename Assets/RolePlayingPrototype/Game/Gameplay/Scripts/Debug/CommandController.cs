@@ -6,7 +6,6 @@ using Zenject;
 
 namespace SampleProject
 {
-    //TEST
     public sealed class CommandController : MonoBehaviour
     {
         [SerializeField]
@@ -45,8 +44,4 @@ namespace SampleProject
             _commandService.Stop(_entity.Handle);
         }
     }
-
-    
-    
-    
 }

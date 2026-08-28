@@ -10,6 +10,20 @@ namespace Game.GameEngine.Ecs
         private const float ApproachStoppingDistance = 0.2f;
         private const float WaypointStoppingDistance = 0.6f;
         private const float NavMeshSampleDistance = 1f;
+        private const float AcceptableDepotDetourFactor = 1.25f;
+        private const float AcceptableDepotDetourDistance = 0.75f;
+
+        private static readonly float[] DepotCandidateAngles =
+        {
+            0f,
+            -45f,
+            45f,
+            -90f,
+            90f,
+            -135f,
+            135f,
+            180f
+        };
 
         private EcsPool<GatherTarget> _targetResourcePool;
         private EcsPool<GatherState> _gatherStatePool;
@@ -89,15 +103,12 @@ namespace Game.GameEngine.Ecs
 
             _navigationPool.RemoveComponent(entity);
 
-            //Transitions:
             if (_resourceBagPool.HasComponent(entity))
             {
-                //Transit to MOVE_TO_BASE:
                 this.SetMoveToHomeState(entity);
             }
             else
             {
-                //Transit to GATHERING:
                 this.SetGatheringState(entity);
             }
         }
@@ -128,7 +139,6 @@ namespace Game.GameEngine.Ecs
                 _world.SendEvent(target.Id, new DestroyEvent());
             }
 
-            //Transit to move base:
             this.SetMoveToHomeState(entity);
         }
 
@@ -147,7 +157,6 @@ namespace Game.GameEngine.Ecs
 
             _navigationPool.RemoveComponent(entity);
 
-            //Put resources to base...
             if (_resourceBagPool.HasComponent(entity))
             {
                 var gatherData = _resourceBagPool.GetComponent(entity);
@@ -161,9 +170,8 @@ namespace Game.GameEngine.Ecs
 
             ref var resource = ref _targetResourcePool.GetComponent(entity).Target;
 
-            if (!_world.IsEntityExists(resource)) //TODO: Find other resource...
+            if (!_world.IsEntityExists(resource))
             {
-                //COMPLETE GATHERING IF RESOURCE NOT FOUND!!!
                 this.StopGathering(entity);
                 return;
             }
@@ -252,8 +260,117 @@ namespace Game.GameEngine.Ecs
             ref var homeTransform = ref _transformPool.GetComponent(_resourceDepot.Handle.Id);
 
             var unitPosition = _transformPool.GetComponent(entity).Value.position;
+            if (TrySetMoveToDepotDestination(entity, unitPosition, homeTransform.Value.position, homeTransform.Radius))
+            {
+                return;
+            }
+
             var sampleDistance = Mathf.Max(NavMeshSampleDistance, homeTransform.Radius + ApproachStoppingDistance);
             SetMoveDestination(entity, unitPosition, homeTransform.Value.position, homeTransform.Radius, sampleDistance);
+        }
+
+        private bool TrySetMoveToDepotDestination(int entity, Vector3 unitPosition, Vector3 depotPosition, float depotRadius)
+        {
+            var approachRadius = Mathf.Max(0.1f, depotRadius);
+            if (HorizontalDistance(unitPosition, depotPosition) <= approachRadius + ApproachStoppingDistance)
+            {
+                _navigationPool.RemoveComponent(entity);
+                _moveToPositionPool.SetComponent(entity, new MoveToPositionData
+                {
+                    Destination = unitPosition,
+                    StoppingDistance = ApproachStoppingDistance
+                });
+                return true;
+            }
+
+            depotPosition.y = unitPosition.y;
+            var direction = Vector3.ProjectOnPlane(unitPosition - depotPosition, Vector3.up).normalized;
+            if (direction == Vector3.zero)
+            {
+                direction = Vector3.forward;
+            }
+
+            var hasBestPath = false;
+            var bestPath = default(NavigationPathResult);
+            var bestLength = float.MaxValue;
+            for (var i = 0; i < DepotCandidateAngles.Length; i++)
+            {
+                var candidateDirection = Quaternion.AngleAxis(DepotCandidateAngles[i], Vector3.up) * direction;
+                var candidate = depotPosition + candidateDirection * approachRadius;
+                if (!_navigation.TryBuildPath(unitPosition, candidate, NavMeshSampleDistance, out var path) || !path.IsComplete)
+                {
+                    continue;
+                }
+
+                var pathLength = CalculatePathLength(path.Corners);
+                if (i == 0 && IsAcceptableDepotPath(path, pathLength))
+                {
+                    SetPreparedMoveDestination(entity, path, ApproachStoppingDistance);
+                    return true;
+                }
+
+                if (pathLength < bestLength)
+                {
+                    bestLength = pathLength;
+                    bestPath = path;
+                    hasBestPath = true;
+                }
+            }
+
+            if (!hasBestPath)
+            {
+                return false;
+            }
+
+            SetPreparedMoveDestination(entity, bestPath, ApproachStoppingDistance);
+            return true;
+        }
+
+        private bool IsAcceptableDepotPath(NavigationPathResult path, float pathLength)
+        {
+            var directDistance = HorizontalDistance(path.Start, path.Destination);
+            return pathLength <= directDistance * AcceptableDepotDetourFactor + AcceptableDepotDetourDistance;
+        }
+
+        private float CalculatePathLength(Vector3[] corners)
+        {
+            var length = 0f;
+            for (var i = 1; i < corners.Length; i++)
+            {
+                length += HorizontalDistance(corners[i - 1], corners[i]);
+            }
+
+            return length;
+        }
+
+        private float HorizontalDistance(Vector3 left, Vector3 right)
+        {
+            var offset = right - left;
+            offset.y = 0f;
+            return offset.magnitude;
+        }
+
+        private void SetPreparedMoveDestination(int entity, NavigationPathResult path, float stoppingDistance)
+        {
+            _navigationPool.RemoveComponent(entity);
+            if (path.Corners.Length > 2)
+            {
+                _navigationPool.SetComponent(entity, new GatherNavigationData
+                {
+                    Destination = path.Destination,
+                    Corners = path.Corners,
+                    Pointer = 1,
+                    StoppingDistance = stoppingDistance
+                });
+                SetCurrentNavigationPoint(entity);
+                return;
+            }
+
+            _moveToPositionPool.SetComponent(entity, new MoveToPositionData
+            {
+                Destination = path.Destination,
+                StoppingDistance = stoppingDistance
+            });
         }
 
         private void SetMoveDestination(int entity, Vector3 start, Vector3 destination, float stoppingDistance, float sampleDistance)

@@ -1,5 +1,4 @@
 using GameECS;
-using UnityEngine;
 
 namespace Game.GameEngine.Ecs
 {
@@ -21,11 +20,6 @@ namespace Game.GameEngine.Ecs
 
         private void Attack(int entity)
         {
-            if (_requestPool == null)
-            {
-                Debug.LogError("RQ POOL NULL");
-            }
-            
             if (!_requestPool.HasComponent(entity))
             {
                 return;
@@ -40,7 +34,6 @@ namespace Game.GameEngine.Ecs
                 Damage = component.Damage,
                 DamageType = component.DamageType
             });
-            Debug.Log("ATTACK!");
         }
     }
 }

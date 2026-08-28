@@ -51,8 +51,17 @@ namespace Game.GameEngine.Ecs
                 return;
             }
 
-            RemoveInvalidMembers(group);
             var handle = _world.GetEntityHandle(entity);
+            if (!_routePool.HasComponent(entity) || _routePool.GetComponent(entity).Group != group)
+            {
+                group.Remove(handle);
+                _movePool.RemoveComponent(entity);
+                _navigationPool.RemoveComponent(entity);
+                _patrolPool.RemoveComponent(entity);
+                return;
+            }
+
+            RemoveInvalidMembers(group);
             if (!group.HasFormation)
             {
                 BuildFormation(group);
@@ -224,8 +233,16 @@ namespace Game.GameEngine.Ecs
             group.Remove(handle);
             _movePool.RemoveComponent(entity);
             _navigationPool.RemoveComponent(entity);
-            _routePool.RemoveComponent(entity);
-            _commandPool.RemoveComponent(entity);
+            if (_routePool.HasComponent(entity) && _routePool.GetComponent(entity).Group == group)
+            {
+                _routePool.RemoveComponent(entity);
+            }
+
+            if (_commandPool.HasComponent(entity) && _commandPool.GetComponent(entity).Type == CommandType.PATROL_BY_POINTS)
+            {
+                _commandPool.RemoveComponent(entity);
+            }
+
             group.TryMoveNext();
         }
 

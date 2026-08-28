@@ -1,3 +1,4 @@
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -27,6 +28,8 @@ namespace Game.GameEngine.Ecs
 
     public sealed class NavigationPathService : INavigationPathService
     {
+        private static readonly ProfilerMarker CalculatePathMarker = new("Navigation.Path.Calculate");
+
         private const float StartSampleDistance = 0.5f;
 
         private readonly NavMeshPath _path = new();
@@ -35,9 +38,18 @@ namespace Game.GameEngine.Ecs
         {
             result = default;
             if (!NavMesh.SamplePosition(start, out var startHit, StartSampleDistance, NavMesh.AllAreas) ||
-                !NavMesh.SamplePosition(destination, out var destinationHit, sampleDistance, NavMesh.AllAreas) ||
-                !NavMesh.CalculatePath(startHit.position, destinationHit.position, NavMesh.AllAreas, _path) ||
-                _path.status == NavMeshPathStatus.PathInvalid)
+                !NavMesh.SamplePosition(destination, out var destinationHit, sampleDistance, NavMesh.AllAreas))
+            {
+                return false;
+            }
+
+            bool pathCalculated;
+            using (CalculatePathMarker.Auto())
+            {
+                pathCalculated = NavMesh.CalculatePath(startHit.position, destinationHit.position, NavMesh.AllAreas, _path);
+            }
+
+            if (!pathCalculated || _path.status == NavMeshPathStatus.PathInvalid)
             {
                 return false;
             }

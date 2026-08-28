@@ -141,10 +141,30 @@ namespace SampleProject
 
         private void ClearPatrolRoute(EntityHandle entity)
         {
-            if (_world.IsEntityExists(entity) && _world.HasComponent<PatrolRouteComponent>(entity.Id))
+            if (!_world.IsEntityExists(entity))
+            {
+                return;
+            }
+
+            if (_world.HasComponent<PatrolRouteComponent>(entity.Id))
             {
                 _world.GetComponent<PatrolRouteComponent>(entity.Id).Group?.Remove(entity);
                 _world.RemoveComponent<PatrolRouteComponent>(entity.Id);
+            }
+
+            if (_world.HasComponent<PatrolData>(entity.Id))
+            {
+                _world.RemoveComponent<PatrolData>(entity.Id);
+            }
+
+            if (_world.HasComponent<PatrolNavigationData>(entity.Id))
+            {
+                _world.RemoveComponent<PatrolNavigationData>(entity.Id);
+            }
+
+            if (_world.HasComponent<MoveToPositionData>(entity.Id))
+            {
+                _world.RemoveComponent<MoveToPositionData>(entity.Id);
             }
         }
     }

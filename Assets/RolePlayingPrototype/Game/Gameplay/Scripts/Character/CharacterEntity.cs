@@ -41,6 +41,10 @@ namespace Entities
         [Tooltip("Optional world-space patrol route used when this scene unit is created. Maximum 6 points.")]
         private Vector3[] _initialPatrolPoints = System.Array.Empty<Vector3>();
 
+        [SerializeField]
+        [Tooltip("Optional shared scene patrol group. Its route takes priority over Initial Patrol Points.")]
+        private PatrolGroupAuthoring _initialPatrolGroup;
+
         [SerializeField, Min(0.1f)]
         [FormerlySerializedAs("deathAnimationDuration")]
         private float _deathAnimationDuration = 1f;
@@ -127,6 +131,12 @@ namespace Entities
 
         private void SetInitialPatrol()
         {
+            if (_initialPatrolGroup != null && _initialPatrolGroup.TryJoin(Handle, out var sharedGroup, out var sharedPoints))
+            {
+                SetInitialPatrol(sharedPoints, sharedGroup);
+                return;
+            }
+
             if (_initialPatrolPoints == null || _initialPatrolPoints.Length == 0)
             {
                 return;
@@ -138,13 +148,15 @@ namespace Entities
                 points.Add(_initialPatrolPoints[i]);
             }
 
-            if (points.Count > 0)
-            {
-                var group = new PatrolGroupState(points);
-                group.Add(Handle);
-                SetData(new PatrolRouteComponent { Points = new List<Vector3>(points), Group = group });
-                SetData(new CommandRequest { Type = CommandType.PATROL_BY_POINTS, Status = CommandStatus.IDLE, Args = points });
-            }
+            var group = new PatrolGroupState(points);
+            group.Add(Handle);
+            SetInitialPatrol(points, group);
+        }
+
+        private void SetInitialPatrol(List<Vector3> points, PatrolGroupState group)
+        {
+            SetData(new PatrolRouteComponent { Points = points, Group = group });
+            SetData(new CommandRequest { Type = CommandType.PATROL_BY_POINTS, Status = CommandStatus.IDLE, Args = points });
         }
     }
 }

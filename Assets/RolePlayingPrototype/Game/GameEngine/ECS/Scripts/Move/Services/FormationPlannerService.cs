@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using GameECS;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -24,6 +25,8 @@ namespace Game.GameEngine.Ecs
 
     public sealed class FormationPlannerService : IFormationPlannerService
     {
+        private static readonly ProfilerMarker BuildMarker = new("Navigation.Formation.Build");
+
         private const float Spacing = 1.5f;
         private const float SampleDistance = 0.2f;
         private const float HeightTolerance = 0.25f;
@@ -31,14 +34,24 @@ namespace Game.GameEngine.Ecs
         private readonly List<GridSlot> _gridSlots = new();
         private readonly Dictionary<long, int> _gridSlotIndices = new();
         private readonly HashSet<long> _accepted = new();
+        private readonly Dictionary<long, bool> _connectionCache = new();
         private readonly List<Vector3> _slots = new();
         private readonly List<FormationUnit> _orderedUnits = new();
         private readonly Dictionary<EntityHandle, Vector3> _destinations = new();
 
         public bool TryBuild(IReadOnlyList<FormationUnit> units, Vector3 center, Vector3 forward, out IReadOnlyDictionary<EntityHandle, Vector3> destinations)
         {
+            using (BuildMarker.Auto())
+            {
+                return TryBuildInternal(units, center, forward, out destinations);
+            }
+        }
+
+        private bool TryBuildInternal(IReadOnlyList<FormationUnit> units, Vector3 center, Vector3 forward, out IReadOnlyDictionary<EntityHandle, Vector3> destinations)
+        {
             _gridSlots.Clear();
             _gridSlotIndices.Clear();
+            _connectionCache.Clear();
             _slots.Clear();
             _orderedUnits.Clear();
             _destinations.Clear();
@@ -176,12 +189,12 @@ namespace Game.GameEngine.Ecs
                 {
                     var candidate = _gridSlots[i];
                     var candidateKey = GetGridKey(candidate.Column, candidate.Row);
-                    if (_accepted.Contains(candidateKey) || NavMesh.Raycast(seed.Position, candidate.Position, out _, NavMesh.AllAreas))
+                    if (_accepted.Contains(candidateKey) || !HasClearConnection(seedIndex, i))
                     {
                         continue;
                     }
 
-                    var neighbourCount = CountConnectedNeighbours(candidate);
+                    var neighbourCount = CountConnectedNeighbours(i);
                     if (neighbourCount == 0)
                     {
                         continue;
@@ -228,8 +241,9 @@ namespace Game.GameEngine.Ecs
             }
         }
 
-        private int CountConnectedNeighbours(GridSlot slot)
+        private int CountConnectedNeighbours(int slotIndex)
         {
+            var slot = _gridSlots[slotIndex];
             var count = 0;
             for (var rowOffset = -1; rowOffset <= 1; rowOffset++)
             {
@@ -246,8 +260,8 @@ namespace Game.GameEngine.Ecs
                         continue;
                     }
 
-                    var neighbour = _gridSlots[_gridSlotIndices[neighbourKey]];
-                    if (!NavMesh.Raycast(slot.Position, neighbour.Position, out _, NavMesh.AllAreas))
+                    var neighbourIndex = _gridSlotIndices[neighbourKey];
+                    if (HasClearConnection(slotIndex, neighbourIndex))
                     {
                         count++;
                     }
@@ -255,6 +269,19 @@ namespace Game.GameEngine.Ecs
             }
 
             return count;
+        }
+
+        private bool HasClearConnection(int fromIndex, int toIndex)
+        {
+            var key = (long) fromIndex << 32 | (uint) toIndex;
+            if (_connectionCache.TryGetValue(key, out var isClear))
+            {
+                return isClear;
+            }
+
+            isClear = !NavMesh.Raycast(_gridSlots[fromIndex].Position, _gridSlots[toIndex].Position, out _, NavMesh.AllAreas);
+            _connectionCache.Add(key, isClear);
+            return isClear;
         }
 
         private long GetGridKey(int column, int row)

@@ -29,6 +29,7 @@ namespace SampleProject
         private IContextCommandResolver _contextCommandResolver;
         private EcsWorld _world;
         private Camera _worldCamera;
+        private StrategyCameraController _cameraController;
         private readonly List<EntityHandle> _entityBuffer = new();
         private readonly List<RaycastResult> _uiRaycastResults = new();
         private Vector2 _dragStart;
@@ -47,6 +48,7 @@ namespace SampleProject
         private void Awake()
         {
             _worldCamera = GetComponent<Camera>();
+            _cameraController = GetComponent<StrategyCameraController>();
         }
 
         private void OnEnable()
@@ -81,7 +83,7 @@ namespace SampleProject
 
         private void OnGUI()
         {
-            if (!_isDragging || Vector2.Distance(_dragStart, _pointerPosition.ReadValue<Vector2>()) < DragThreshold)
+            if (!_isDragging || _cameraController != null && _cameraController.BlocksPointerInteraction || Vector2.Distance(_dragStart, _pointerPosition.ReadValue<Vector2>()) < DragThreshold)
             {
                 return;
             }
@@ -92,12 +94,24 @@ namespace SampleProject
 
         private void OnPrimaryStarted(InputAction.CallbackContext context)
         {
+            if (_cameraController != null && _cameraController.BlocksPointerInteraction)
+            {
+                _isDragging = false;
+                return;
+            }
+
             _dragStart = _pointerPosition.ReadValue<Vector2>();
             _isDragging = true;
         }
 
         private void OnPrimaryCanceled(InputAction.CallbackContext context)
         {
+            if (_cameraController != null && _cameraController.BlocksPointerInteraction)
+            {
+                _isDragging = false;
+                return;
+            }
+
             if (!_isDragging)
             {
                 return;

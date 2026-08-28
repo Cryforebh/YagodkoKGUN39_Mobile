@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.GameEngine.Ecs;
 using GameECS;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -17,6 +18,8 @@ namespace SampleProject
 
     public sealed class GroupCommandService : IGroupCommandService
     {
+        private static readonly ProfilerMarker MoveCommandMarker = new("Navigation.Group.MoveCommand");
+
         private const float FormationSpacing = 1.5f;
         private const float NavMeshProbeDistance = 0.15f;
         private const float NavMeshHeightTolerance = 0.25f;
@@ -59,6 +62,14 @@ namespace SampleProject
         }
 
         public void Move(Vector3 destination)
+        {
+            using (MoveCommandMarker.Auto())
+            {
+                MoveInternal(destination);
+            }
+        }
+
+        private void MoveInternal(Vector3 destination)
         {
             var transformPool = _world.GetPool<TransformComponent>();
             _remainingUnits.Clear();
