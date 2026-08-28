@@ -68,7 +68,7 @@ namespace RolePlayingPrototype.Editor
 
         private void OnSceneGUI()
         {
-            if (Application.isPlaying || targets.Length > 1 || _initialPatrolPoints == null)
+            if (Application.isPlaying || serializedObject.isEditingMultipleObjects || _initialPatrolPoints == null)
             {
                 return;
             }

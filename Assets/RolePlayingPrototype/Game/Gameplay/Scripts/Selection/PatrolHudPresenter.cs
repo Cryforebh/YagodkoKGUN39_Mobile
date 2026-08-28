@@ -11,8 +11,11 @@ namespace SampleProject
 {
     public sealed class PatrolHudPresenter : IInitializable, IDisposable
     {
+        private const string MarkerPoolId = "Patrol Point Marker";
+
         private readonly List<GameObject> _markers = new();
         private readonly CompositeDisposable _subscriptions = new();
+        private readonly IGameObjectPool _gameObjectPool;
         private readonly IPatrolRouteEditor _routeEditor;
         private readonly IUnitSelectionService _selection;
         private readonly GameplayHudView _view;
@@ -23,11 +26,12 @@ namespace SampleProject
         private Material _markerMaterial;
         private bool _isDisposed;
 
-        public PatrolHudPresenter(IPatrolRouteEditor routeEditor, IUnitSelectionService selection, GameplayHudView view)
+        public PatrolHudPresenter(IPatrolRouteEditor routeEditor, IUnitSelectionService selection, GameplayHudView view, IGameObjectPool gameObjectPool)
         {
             _routeEditor = routeEditor;
             _selection = selection;
             _view = view;
+            _gameObjectPool = gameObjectPool;
         }
 
         public void Initialize()
@@ -38,6 +42,7 @@ namespace SampleProject
             _view.ApplyButton.onClick.AddListener(_routeEditor.Apply);
             _view.ClearButton.onClick.AddListener(_routeEditor.ClearPoints);
             CreateRouteLine();
+            _gameObjectPool.Prewarm(MarkerPoolId, PatrolRouteEditor.MaximumPointCount, CreateMarkerObject);
             _routeEditor.Changed += Refresh;
             _selection.Selected.ObserveCountChanged().Subscribe(_ => Refresh()).AddTo(_subscriptions);
             Refresh();
@@ -141,10 +146,18 @@ namespace SampleProject
 
         private void CreateMarker(Vector3 position, int number)
         {
-            var marker = new GameObject("Patrol Point " + number);
+            var marker = _gameObjectPool.Get(MarkerPoolId, CreateMarkerObject);
             marker.name = "Patrol Point " + number;
             marker.transform.position = position;
 
+            var label = marker.GetComponentInChildren<TextMeshPro>(true);
+            label.text = number.ToString();
+            _markers.Add(marker);
+        }
+
+        private GameObject CreateMarkerObject()
+        {
+            var marker = new GameObject(MarkerPoolId);
             var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             cylinder.name = "Marker";
             cylinder.transform.SetParent(marker.transform, false);
@@ -152,7 +165,6 @@ namespace SampleProject
             cylinder.transform.localScale = new Vector3(0.24f, 0.03f, 0.24f);
             var collider = cylinder.GetComponent<Collider>();
             collider.enabled = false;
-            UnityEngine.Object.Destroy(collider);
             if (_markerMaterial != null)
             {
                 cylinder.GetComponent<Renderer>().sharedMaterial = _markerMaterial;
@@ -163,11 +175,10 @@ namespace SampleProject
             labelObject.transform.localPosition = new Vector3(0f, 0.08f, 0f);
             labelObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             var label = labelObject.GetComponent<TextMeshPro>();
-            label.text = number.ToString();
             label.fontSize = 3f;
             label.alignment = TextAlignmentOptions.Center;
             label.color = Color.white;
-            _markers.Add(marker);
+            return marker;
         }
 
         private void ClearMarkers()
@@ -176,7 +187,7 @@ namespace SampleProject
             {
                 if (_markers[i] != null)
                 {
-                    UnityEngine.Object.Destroy(_markers[i]);
+                    _gameObjectPool.Release(MarkerPoolId, _markers[i]);
                 }
             }
 

@@ -9,18 +9,21 @@ namespace SampleProject
 {
     public sealed class UnitSelectionPresenter : IDisposable
     {
+        private const string IndicatorPoolId = "Selection Indicator";
         private const int Segments = 32;
         private const float Width = 0.08f;
 
         private readonly Dictionary<EntityHandle, GameObject> _indicators = new();
         private readonly CompositeDisposable _subscriptions = new();
         private readonly IUnitSelectionService _selection;
+        private readonly IGameObjectPool _gameObjectPool;
         private readonly EcsWorld _world;
         private Material _material;
 
-        public UnitSelectionPresenter(IUnitSelectionService selection, EcsWorld world)
+        public UnitSelectionPresenter(IUnitSelectionService selection, IGameObjectPool gameObjectPool, EcsWorld world)
         {
             _selection = selection;
+            _gameObjectPool = gameObjectPool;
             _world = world;
             _selection.Selected.ObserveAdd().Subscribe(item => AddIndicator(item.Value)).AddTo(_subscriptions);
             _selection.Selected.ObserveRemove().Subscribe(item => RemoveIndicator(item.Value)).AddTo(_subscriptions);
@@ -31,7 +34,7 @@ namespace SampleProject
             _subscriptions.Dispose();
             foreach (var indicator in _indicators.Values)
             {
-                UnityEngine.Object.Destroy(indicator);
+                _gameObjectPool.Release(IndicatorPoolId, indicator);
             }
 
             _indicators.Clear();
@@ -49,18 +52,9 @@ namespace SampleProject
             }
 
             ref var transformComponent = ref _world.GetComponent<TransformComponent>(entity.Id);
-            var indicator = new GameObject("Selection Indicator");
-            indicator.transform.SetParent(transformComponent.Value, false);
+            var indicator = _gameObjectPool.Get(IndicatorPoolId, CreateIndicator, transformComponent.Value);
             indicator.transform.localPosition = new Vector3(0, 0.05f, 0);
-            var line = indicator.AddComponent<LineRenderer>();
-            line.loop = true;
-            line.useWorldSpace = false;
-            line.positionCount = Segments;
-            line.startWidth = Width;
-            line.endWidth = Width;
-            line.startColor = Color.green;
-            line.endColor = Color.green;
-            line.material = GetMaterial();
+            var line = indicator.GetComponent<LineRenderer>();
 
             var radius = Mathf.Max(0.65f, transformComponent.Radius);
             for (var i = 0; i < Segments; i++)
@@ -79,7 +73,22 @@ namespace SampleProject
                 return;
             }
 
-            UnityEngine.Object.Destroy(indicator);
+            _gameObjectPool.Release(IndicatorPoolId, indicator);
+        }
+
+        private GameObject CreateIndicator()
+        {
+            var indicator = new GameObject(IndicatorPoolId);
+            var line = indicator.AddComponent<LineRenderer>();
+            line.loop = true;
+            line.useWorldSpace = false;
+            line.positionCount = Segments;
+            line.startWidth = Width;
+            line.endWidth = Width;
+            line.startColor = Color.green;
+            line.endColor = Color.green;
+            line.material = GetMaterial();
+            return indicator;
         }
 
         private Material GetMaterial()
