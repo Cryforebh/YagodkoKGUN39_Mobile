@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using Game.GameEngine.Ecs;
 using GameECS;
-using SampleProject.ResourceObject;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -28,6 +26,7 @@ namespace SampleProject
         private IUnitSelectionService _selection;
         private IGroupCommandService _commands;
         private IPatrolRouteEditor _patrolRouteEditor;
+        private IContextCommandResolver _contextCommandResolver;
         private EcsWorld _world;
         private Camera _worldCamera;
         private readonly List<EntityHandle> _entityBuffer = new();
@@ -36,11 +35,12 @@ namespace SampleProject
         private bool _isDragging;
 
         [Inject]
-        private void Construct(IUnitSelectionService unitSelection, IGroupCommandService groupCommands, IPatrolRouteEditor patrolRouteEditor, EcsWorld ecsWorld)
+        private void Construct(IUnitSelectionService unitSelection, IGroupCommandService groupCommands, IPatrolRouteEditor patrolRouteEditor, IContextCommandResolver contextCommandResolver, EcsWorld ecsWorld)
         {
             _selection = unitSelection;
             _commands = groupCommands;
             _patrolRouteEditor = patrolRouteEditor;
+            _contextCommandResolver = contextCommandResolver;
             _world = ecsWorld;
         }
 
@@ -137,14 +137,14 @@ namespace SampleProject
                 return;
             }
 
-            var entity = hit.collider == null ? null : hit.collider.GetComponentInParent<Entity>();
-            var resource = hit.collider == null ? null : hit.collider.GetComponentInParent<ResourceEntity>();
-            if (resource != null && _selection.Selected.Count > 0)
+            var command = _contextCommandResolver.Resolve(hit, groundPoint);
+            if (command.Type == ContextCommandType.Gather && _selection.Selected.Count > 0)
             {
-                _commands.Gather(resource.Handle);
+                ExecuteContextCommand(command);
                 return;
             }
 
+            var entity = hit.collider == null ? null : hit.collider.GetComponentInParent<Entity>();
             if (entity != null)
             {
                 if (_selection.Select(entity.Handle, _additiveSelection.IsPressed()))
@@ -154,15 +154,15 @@ namespace SampleProject
 
                 if (isTouch && _selection.Selected.Count > 0)
                 {
-                    _commands.Attack(entity.Handle);
+                    ExecuteContextCommand(_contextCommandResolver.Resolve(hit, groundPoint));
                 }
 
                 return;
             }
 
-            if (isTouch && _selection.Selected.Count > 0)
+            if (isTouch && _selection.Selected.Count > 0 && command.Type == ContextCommandType.Move)
             {
-                _commands.Move(groundPoint);
+                ExecuteContextCommand(command);
                 return;
             }
 
@@ -201,21 +201,7 @@ namespace SampleProject
                 return;
             }
 
-            var resource = hit.collider == null ? null : hit.collider.GetComponentInParent<ResourceEntity>();
-            if (resource != null)
-            {
-                _commands.Gather(resource.Handle);
-                return;
-            }
-
-            var target = hit.collider == null ? null : hit.collider.GetComponentInParent<Entity>();
-            if (target != null)
-            {
-                _commands.Attack(target.Handle);
-                return;
-            }
-
-            _commands.Move(groundPoint);
+            ExecuteContextCommand(_contextCommandResolver.Resolve(hit, groundPoint));
         }
 
         private void TryAddPatrolPoint()
@@ -225,24 +211,28 @@ namespace SampleProject
                 return;
             }
 
-            if (hit.collider != null && hit.collider.GetComponentInParent<Entity>() != null)
+            if ((hit.collider != null && hit.collider.GetComponentInParent<Entity>() != null) || !_contextCommandResolver.TryResolveWalkablePosition(hit, groundPoint, out var walkablePosition))
             {
                 return;
             }
 
-            const float probeDistance = 0.15f;
-            if (!NavMesh.SamplePosition(groundPoint, out var navMeshHit, probeDistance, NavMesh.AllAreas))
-            {
-                return;
-            }
+            _patrolRouteEditor.AddPoint(walkablePosition);
+        }
 
-            var horizontalOffset = Vector3.ProjectOnPlane(navMeshHit.position - groundPoint, Vector3.up);
-            if (horizontalOffset.sqrMagnitude > probeDistance * probeDistance || Mathf.Abs(navMeshHit.position.y - groundPoint.y) > 0.25f)
+        private void ExecuteContextCommand(ContextCommand command)
+        {
+            switch (command.Type)
             {
-                return;
+                case ContextCommandType.Move:
+                    _commands.Move(command.Position);
+                    break;
+                case ContextCommandType.Attack:
+                    _commands.Attack(command.Target);
+                    break;
+                case ContextCommandType.Gather:
+                    _commands.Gather(command.Target);
+                    break;
             }
-
-            _patrolRouteEditor.AddPoint(navMeshHit.position);
         }
 
         private bool IsPointerOverUi(Vector2 pointerPosition)

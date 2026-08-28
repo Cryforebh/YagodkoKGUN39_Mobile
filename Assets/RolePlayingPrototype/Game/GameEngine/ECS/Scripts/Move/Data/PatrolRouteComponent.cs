@@ -8,5 +8,6 @@ namespace Game.GameEngine.Ecs
     public struct PatrolRouteComponent
     {
         public List<Vector3> Points;
+        public PatrolGroupState Group;
     }
 }

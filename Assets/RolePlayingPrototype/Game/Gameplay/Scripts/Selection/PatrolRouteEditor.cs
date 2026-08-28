@@ -116,6 +116,7 @@ namespace SampleProject
                 return;
             }
 
+            var group = _points.Count > 0 ? new PatrolGroupState(new List<Vector3>(_points)) : null;
             for (var i = 0; i < _units.Count; i++)
             {
                 var unit = _units[i];
@@ -130,7 +131,7 @@ namespace SampleProject
                 }
                 else
                 {
-                    _commands.Patrol(unit, _points);
+                    _commands.Patrol(unit, group.Points, group);
                 }
             }
 

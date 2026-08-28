@@ -23,9 +23,10 @@ namespace SampleProject
     {
         IObservable<IssuedEntityCommand> IssuedCommands { get; }
         void Move(EntityHandle entity, Vector3 position);
+        void Move(EntityHandle entity, Vector3 position, IReadOnlyList<Vector3> waypoints);
         void Attack(EntityHandle entity, EntityHandle target);
         void Gather(EntityHandle entity, EntityHandle resource);
-        void Patrol(EntityHandle entity, IReadOnlyList<Vector3> points);
+        void Patrol(EntityHandle entity, IReadOnlyList<Vector3> points, PatrolGroupState group = null);
         void Stop(EntityHandle entity);
     }
 
@@ -47,6 +48,22 @@ namespace SampleProject
             SetCommand(entity, CommandType.MOVE_TO_POSITION, position);
         }
 
+        public void Move(EntityHandle entity, Vector3 position, IReadOnlyList<Vector3> waypoints)
+        {
+            ClearPatrolRoute(entity);
+            if (waypoints == null || waypoints.Count == 0)
+            {
+                SetCommand(entity, CommandType.MOVE_TO_POSITION, position);
+                return;
+            }
+
+            SetCommand(entity, CommandType.MOVE_TO_POSITION, new MoveRouteCommand
+            {
+                Destination = position,
+                Waypoints = waypoints
+            });
+        }
+
         public void Attack(EntityHandle entity, EntityHandle target)
         {
             if (!CanAttack(entity, target))
@@ -64,7 +81,7 @@ namespace SampleProject
             SetCommand(entity, CommandType.GATHER_RESOURCE, resource);
         }
 
-        public void Patrol(EntityHandle entity, IReadOnlyList<Vector3> points)
+        public void Patrol(EntityHandle entity, IReadOnlyList<Vector3> points, PatrolGroupState group = null)
         {
             if (!_world.IsEntityExists(entity) || points.Count == 0)
             {
@@ -72,8 +89,11 @@ namespace SampleProject
                 return;
             }
 
+            ClearPatrolRoute(entity);
             var route = new List<Vector3>(points);
-            var patrolRoute = new PatrolRouteComponent { Points = route };
+            group ??= new PatrolGroupState(route);
+            group.Add(entity);
+            var patrolRoute = new PatrolRouteComponent { Points = route, Group = group };
             _world.SetComponent(entity.Id, ref patrolRoute);
             SetCommand(entity, CommandType.PATROL_BY_POINTS, new List<Vector3>(route));
         }
@@ -123,6 +143,7 @@ namespace SampleProject
         {
             if (_world.IsEntityExists(entity) && _world.HasComponent<PatrolRouteComponent>(entity.Id))
             {
+                _world.GetComponent<PatrolRouteComponent>(entity.Id).Group?.Remove(entity);
                 _world.RemoveComponent<PatrolRouteComponent>(entity.Id);
             }
         }

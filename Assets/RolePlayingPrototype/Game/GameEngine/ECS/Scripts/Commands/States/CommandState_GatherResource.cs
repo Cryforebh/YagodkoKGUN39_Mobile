@@ -7,6 +7,7 @@ namespace Game.GameEngine.Ecs
         private EcsPool<GatherTarget> _targetResourcePool;
         private EcsPool<GatherState> _gatherStatePool;
         private EcsPool<GatherDuration> _gatherDurationPool;
+        private EcsPool<GatherNavigationData> _navigationPool;
         
         private EcsPool<TransformComponent> _transformPool;
         private EcsPool<MoveToPositionData> _moveToPositionPool;
@@ -38,6 +39,7 @@ namespace Game.GameEngine.Ecs
             _targetResourcePool.RemoveComponent(entity);
             _gatherStatePool.RemoveComponent(entity);
             _gatherDurationPool.RemoveComponent(entity);
+            _navigationPool.RemoveComponent(entity);
             _moveToPositionPool.RemoveComponent(entity);
         }
     }

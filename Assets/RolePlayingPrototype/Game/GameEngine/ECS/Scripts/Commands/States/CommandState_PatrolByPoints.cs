@@ -10,7 +10,10 @@ namespace Game.GameEngine.Ecs
 
         private EcsPool<TransformComponent> _transformPool;
         private EcsPool<PatrolData> _patrolPointsPool;
+        private EcsPool<PatrolRouteComponent> _patrolRoutePool;
+        private EcsPool<PatrolNavigationData> _navigationPool;
         private EcsPool<MoveToPositionData> _moveToPositionPool;
+        private EcsWorld _world;
 
         public override bool MatchesType(CommandType type)
         {
@@ -19,10 +22,17 @@ namespace Game.GameEngine.Ecs
         
         public override void Enter(int entity, object args)
         {
+            ref var route = ref _patrolRoutePool.GetComponent(entity);
+            if (route.Group == null)
+            {
+                route.Group = new PatrolGroupState(route.Points);
+                route.Group.Add(_world.GetEntityHandle(entity));
+            }
+
             _patrolPointsPool.SetComponent(entity, new PatrolData
             {
-                Points = (List<Vector3>) args,
-                Pointer = 0,
+                Group = route.Group,
+                TargetPoint = route.Group.CurrentPoint,
                 StoppingDistance = STOPPING_DISTANCE
             });
         }
@@ -30,6 +40,7 @@ namespace Game.GameEngine.Ecs
         public override void Exit(int entity)
         {
             _patrolPointsPool.RemoveComponent(entity);
+            _navigationPool.RemoveComponent(entity);
             _moveToPositionPool.RemoveComponent(entity);
         }
     }

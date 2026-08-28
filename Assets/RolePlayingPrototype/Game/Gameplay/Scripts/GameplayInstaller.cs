@@ -16,8 +16,11 @@ namespace SampleProject
             Container.Bind<GameplayHudView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<IResourceDepot>().To<CommandCenterEntity>().FromComponentInHierarchy().AsSingle();
             Container.BindInterfacesAndSelfTo<EntityCommandService>().AsSingle();
+            Container.BindInterfacesAndSelfTo<NavigationPathService>().AsSingle();
+            Container.BindInterfacesAndSelfTo<FormationPlannerService>().AsSingle();
             Container.BindInterfacesAndSelfTo<UnitSelectionService>().AsSingle();
             Container.BindInterfacesAndSelfTo<GroupCommandService>().AsSingle();
+            Container.BindInterfacesAndSelfTo<ContextCommandResolver>().AsSingle();
             Container.BindInterfacesAndSelfTo<UnitCollisionService>().AsSingle();
             Container.BindInterfacesAndSelfTo<UnitSelectionPresenter>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<PatrolRouteEditor>().AsSingle();

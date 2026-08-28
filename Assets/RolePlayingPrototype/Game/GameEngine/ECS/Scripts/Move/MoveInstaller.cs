@@ -15,8 +15,10 @@ namespace Game.GameEngine.Ecs
 
             world.DeclareComponent<MoveStepData>();
             world.DeclareComponent<MoveToPositionData>();
+            world.DeclareComponent<MoveRouteData>();
             world.DeclareComponent<PatrolData>();
             world.DeclareComponent<PatrolRouteComponent>();
+            world.DeclareComponent<PatrolNavigationData>();
 
             world.DeclareSystem<PatrolPointsSystem>();
             world.DeclareSystem<MoveToPositionSystem>();

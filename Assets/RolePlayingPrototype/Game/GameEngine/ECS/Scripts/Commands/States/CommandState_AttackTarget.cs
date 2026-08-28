@@ -8,6 +8,7 @@ namespace Game.GameEngine.Ecs
 
         private EcsPool<HitRequest> _hitRequestPool;
         private EcsPool<MoveToPositionData> _moveToPositionPool;
+        private EcsPool<AttackNavigationData> _navigationPool;
         private EcsPool<HitPointsComponent> _hitPointsPool;
 
         private EcsWorld _world;
@@ -30,6 +31,7 @@ namespace Game.GameEngine.Ecs
             _attackPool.RemoveComponent(entity);
             _hitRequestPool.RemoveComponent(entity);
             _moveToPositionPool.RemoveComponent(entity);
+            _navigationPool.RemoveComponent(entity);
         }
 
         public override void Update(int entity)

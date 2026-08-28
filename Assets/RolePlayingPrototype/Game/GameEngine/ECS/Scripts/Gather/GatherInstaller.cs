@@ -15,6 +15,7 @@ namespace Game.GameEngine.Ecs
             world.DeclareComponent<ResourceBag>();
             world.DeclareComponent<GatherTarget>();
             world.DeclareComponent<GatherState>();
+            world.DeclareComponent<GatherNavigationData>();
             world.DeclareComponent<ResourceNodeComponent>();
             
             world.DeclareSystem<GatherDurationSystem>();

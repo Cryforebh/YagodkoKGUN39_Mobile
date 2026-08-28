@@ -1,16 +1,22 @@
 using GameECS;
 using UnityEngine;
+using UnityEngine.AI;
 using Zenject;
 
 namespace Game.GameEngine.Ecs
 {
     public sealed class GatherResourceSystem : IEcsFixedUpdate
     {
+        private const float ApproachStoppingDistance = 0.2f;
+        private const float WaypointStoppingDistance = 0.6f;
+        private const float NavMeshSampleDistance = 1f;
+
         private EcsPool<GatherTarget> _targetResourcePool;
         private EcsPool<GatherState> _gatherStatePool;
         private EcsPool<GatherDuration> _gatherDurationPool;
         private EcsPool<ResourceBag> _resourceBagPool;
         private EcsPool<ResourceNodeComponent> _resourceNodePool;
+        private EcsPool<GatherNavigationData> _navigationPool;
 
         private EcsPool<MoveToPositionData> _moveToPositionPool;
         private EcsPool<TransformComponent> _transformPool;
@@ -18,17 +24,25 @@ namespace Game.GameEngine.Ecs
 
         private EcsWorld _world;
         private IResourceDepot _resourceDepot;
+        private INavigationPathService _navigation;
 
         [Inject]
-        private void Construct(IResourceDepot depot)
+        private void Construct(IResourceDepot depot, INavigationPathService navigation)
         {
             _resourceDepot = depot;
+            _navigation = navigation;
         }
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
             if (!_targetResourcePool.HasComponent(entity))
             {
+                return;
+            }
+
+            if (!_resourceBagPool.HasComponent(entity) && !IsResourceAvailable(entity))
+            {
+                StopGathering(entity);
                 return;
             }
 
@@ -47,6 +61,14 @@ namespace Game.GameEngine.Ecs
             }
         }
 
+        private bool IsResourceAvailable(int entity)
+        {
+            ref var target = ref _targetResourcePool.GetComponent(entity).Target;
+            return _world.IsEntityExists(target) &&
+                   _resourceNodePool.HasComponent(target.Id) &&
+                   _resourceNodePool.GetComponent(target.Id).RemainingAmount > 0;
+        }
+
         private void UpdateMoveToResourceState(int entity)
         {
             if (!_moveToPositionPool.HasComponent(entity))
@@ -59,6 +81,13 @@ namespace Game.GameEngine.Ecs
             {
                 return;
             }
+
+            if (TrySetNextNavigationPoint(entity))
+            {
+                return;
+            }
+
+            _navigationPool.RemoveComponent(entity);
 
             //Transitions:
             if (_resourceBagPool.HasComponent(entity))
@@ -111,6 +140,13 @@ namespace Game.GameEngine.Ecs
                 return;
             }
 
+            if (TrySetNextNavigationPoint(entity))
+            {
+                return;
+            }
+
+            _navigationPool.RemoveComponent(entity);
+
             //Put resources to base...
             if (_resourceBagPool.HasComponent(entity))
             {
@@ -145,12 +181,26 @@ namespace Game.GameEngine.Ecs
         {
             ref var resource = ref _targetResourcePool.GetComponent(entity).Target;
             ref var resourceTransform = ref _transformPool.GetComponent(resource.Id);
-
-            _moveToPositionPool.SetComponent(entity, new MoveToPositionData
+            ref var unitTransform = ref _transformPool.GetComponent(entity);
+            var resourcePosition = resourceTransform.Value.position;
+            var unitPosition = unitTransform.Value.position;
+            var direction = Vector3.ProjectOnPlane(unitPosition - resourcePosition, Vector3.up).normalized;
+            if (direction == Vector3.zero)
             {
-                Destination = resourceTransform.Value.position,
-                StoppingDistance = resourceTransform.Radius
-            });
+                direction = Vector3.forward;
+            }
+
+            var destination = resourcePosition + direction * resourceTransform.Radius;
+            if (NavMesh.SamplePosition(destination, out var hit, NavMeshSampleDistance, NavMesh.AllAreas))
+            {
+                var hitOffset = Vector3.ProjectOnPlane(hit.position - resourcePosition, Vector3.up);
+                if (hitOffset.sqrMagnitude >= resourceTransform.Radius * resourceTransform.Radius)
+                {
+                    destination = hit.position;
+                }
+            }
+
+            SetMoveDestination(entity, unitPosition, destination, ApproachStoppingDistance, NavMeshSampleDistance);
         }
 
         private void SetGatheringState(int entity)
@@ -201,10 +251,60 @@ namespace Game.GameEngine.Ecs
 
             ref var homeTransform = ref _transformPool.GetComponent(_resourceDepot.Handle.Id);
 
+            var unitPosition = _transformPool.GetComponent(entity).Value.position;
+            var sampleDistance = Mathf.Max(NavMeshSampleDistance, homeTransform.Radius + ApproachStoppingDistance);
+            SetMoveDestination(entity, unitPosition, homeTransform.Value.position, homeTransform.Radius, sampleDistance);
+        }
+
+        private void SetMoveDestination(int entity, Vector3 start, Vector3 destination, float stoppingDistance, float sampleDistance)
+        {
+            _navigationPool.RemoveComponent(entity);
+            if (_navigation.TryBuildPath(start, destination, sampleDistance, out var path) && path.IsComplete && path.Corners.Length > 2)
+            {
+                _navigationPool.SetComponent(entity, new GatherNavigationData
+                {
+                    Destination = destination,
+                    Corners = path.Corners,
+                    Pointer = 1,
+                    StoppingDistance = stoppingDistance
+                });
+                SetCurrentNavigationPoint(entity);
+                return;
+            }
+
             _moveToPositionPool.SetComponent(entity, new MoveToPositionData
             {
-                Destination = homeTransform.Value.position,
-                StoppingDistance = homeTransform.Radius
+                Destination = destination,
+                StoppingDistance = stoppingDistance
+            });
+        }
+
+        private bool TrySetNextNavigationPoint(int entity)
+        {
+            if (!_navigationPool.HasComponent(entity))
+            {
+                return false;
+            }
+
+            ref var route = ref _navigationPool.GetComponent(entity);
+            if (route.Pointer >= route.Corners.Length - 1)
+            {
+                return false;
+            }
+
+            route.Pointer++;
+            SetCurrentNavigationPoint(entity);
+            return true;
+        }
+
+        private void SetCurrentNavigationPoint(int entity)
+        {
+            ref var route = ref _navigationPool.GetComponent(entity);
+            var isLastCorner = route.Pointer == route.Corners.Length - 1;
+            _moveToPositionPool.SetComponent(entity, new MoveToPositionData
+            {
+                Destination = isLastCorner ? route.Destination : route.Corners[route.Pointer],
+                StoppingDistance = isLastCorner ? route.StoppingDistance : WaypointStoppingDistance
             });
         }
 
@@ -215,6 +315,7 @@ namespace Game.GameEngine.Ecs
             _gatherStatePool.RemoveComponent(entity);
             _targetResourcePool.RemoveComponent(entity);
             _gatherDurationPool.RemoveComponent(entity);
+            _navigationPool.RemoveComponent(entity);
         }
     }
 }

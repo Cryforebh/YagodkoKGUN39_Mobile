@@ -21,6 +21,7 @@ namespace SampleProject
         private const float NavMeshProbeDistance = 0.15f;
         private const float NavMeshHeightTolerance = 0.25f;
         private const float MinimumSlotDistanceFactor = 0.8f;
+        private const float NavigationSampleDistance = 2f;
 
         private readonly IUnitSelectionService _selection;
         private readonly IEntityCommandService _commands;
@@ -36,6 +37,9 @@ namespace SampleProject
         private readonly Queue<long> _gridSlotQueue = new();
         private readonly List<long> _currentGridComponent = new();
         private readonly List<long> _largestGridComponent = new();
+        private readonly INavigationPathService _navigation;
+        private readonly IFormationPlannerService _formationPlanner;
+        private readonly List<FormationUnit> _formationUnits = new();
         private float[,] _assignmentCosts;
         private float[] _unitPotentials;
         private float[] _slotPotentials;
@@ -45,11 +49,13 @@ namespace SampleProject
         private bool[] _usedSlots;
         private int _assignmentCapacity;
 
-        public GroupCommandService(IUnitSelectionService selection, IEntityCommandService commands, EcsWorld world)
+        public GroupCommandService(IUnitSelectionService selection, IEntityCommandService commands, EcsWorld world, INavigationPathService navigation, IFormationPlannerService formationPlanner)
         {
             _selection = selection;
             _commands = commands;
             _world = world;
+            _navigation = navigation;
+            _formationPlanner = formationPlanner;
         }
 
         public void Move(Vector3 destination)
@@ -85,6 +91,28 @@ namespace SampleProject
             var right = Vector3.Cross(Vector3.up, forward).normalized;
             var columns = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(count)));
             var rows = Mathf.Max(1, Mathf.CeilToInt((float)count / columns));
+            var navigationWaypoints = BuildNavigationWaypoints(groupCenter, destination);
+
+            _formationUnits.Clear();
+            for (var i = 0; i < count; i++)
+            {
+                var unit = _remainingUnits[i];
+                _formationUnits.Add(new FormationUnit(unit, transformPool.GetComponent(unit.Id).Value.position));
+            }
+
+            if (_formationPlanner.TryBuild(_formationUnits, destination, forward, out var destinations))
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    var unit = _remainingUnits[i];
+                    var unitPosition = transformPool.GetComponent(unit.Id).Value.position;
+                    var unitDestination = destinations[unit];
+                    var unitWaypoints = ResolveNavigationWaypoints(unitPosition, unitDestination, navigationWaypoints);
+                    _commands.Move(unit, unitDestination, unitWaypoints);
+                }
+
+                return;
+            }
 
             _formationSlots.Clear();
             for (var row = 0; row < rows; row++)
@@ -109,14 +137,50 @@ namespace SampleProject
 
             if (TryBuildAdaptiveFormation(destination, forward, right, columns, rows, count))
             {
-                AssignAdaptiveFormation(transformPool);
+                AssignAdaptiveFormation(transformPool, navigationWaypoints);
                 return;
             }
 
             for (var i = 0; i < count; i++)
             {
-                _commands.Move(_remainingUnits[i], _formationSlots[i]);
+                var unitPosition = transformPool.GetComponent(_remainingUnits[i].Id).Value.position;
+                var unitWaypoints = ResolveNavigationWaypoints(unitPosition, _formationSlots[i], navigationWaypoints);
+                _commands.Move(_remainingUnits[i], _formationSlots[i], unitWaypoints);
             }
+        }
+
+        private IReadOnlyList<Vector3> BuildNavigationWaypoints(Vector3 start, Vector3 destination)
+        {
+            if (!_navigation.TryBuildPath(start, destination, NavigationSampleDistance, out var path) || !path.IsComplete)
+            {
+                return null;
+            }
+
+            var corners = path.Corners;
+            if (corners.Length <= 2)
+            {
+                return null;
+            }
+
+            var waypoints = new List<Vector3>(corners.Length - 2);
+            for (var i = 1; i < corners.Length - 1; i++)
+            {
+                waypoints.Add(corners[i]);
+            }
+
+            return waypoints;
+        }
+
+        private IReadOnlyList<Vector3> ResolveNavigationWaypoints(Vector3 start, Vector3 destination, IReadOnlyList<Vector3> sharedWaypoints)
+        {
+            if (sharedWaypoints == null || sharedWaypoints.Count == 0)
+            {
+                return _navigation.HasDirectPath(start, destination, NavigationSampleDistance) ? null : BuildNavigationWaypoints(start, destination);
+            }
+
+            var firstSegmentBlocked = !_navigation.HasDirectPath(start, sharedWaypoints[0], NavigationSampleDistance);
+            var lastSegmentBlocked = !_navigation.HasDirectPath(sharedWaypoints[sharedWaypoints.Count - 1], destination, NavigationSampleDistance);
+            return firstSegmentBlocked || lastSegmentBlocked ? BuildNavigationWaypoints(start, destination) : sharedWaypoints;
         }
 
         private bool TryBuildAdaptiveFormation(Vector3 destination, Vector3 forward, Vector3 right, int columns, int rows, int count)
@@ -440,7 +504,7 @@ namespace SampleProject
             _adaptiveSlots.Add(slot);
         }
 
-        private void AssignAdaptiveFormation(EcsPool<TransformComponent> transformPool)
+        private void AssignAdaptiveFormation(EcsPool<TransformComponent> transformPool, IReadOnlyList<Vector3> navigationWaypoints)
         {
             var count = _remainingUnits.Count;
             EnsureAssignmentCapacity(count);
@@ -525,7 +589,11 @@ namespace SampleProject
 
             for (var slot = 1; slot <= count; slot++)
             {
-                _commands.Move(_remainingUnits[_slotMatching[slot] - 1], _adaptiveSlots[slot - 1]);
+                var unit = _remainingUnits[_slotMatching[slot] - 1];
+                var destination = _adaptiveSlots[slot - 1];
+                var unitPosition = transformPool.GetComponent(unit.Id).Value.position;
+                var unitWaypoints = ResolveNavigationWaypoints(unitPosition, destination, navigationWaypoints);
+                _commands.Move(unit, destination, unitWaypoints);
             }
         }
 
@@ -584,9 +652,10 @@ namespace SampleProject
 
         public void Patrol(IReadOnlyList<Vector3> points)
         {
+            var group = new PatrolGroupState(new List<Vector3>(points));
             for (var i = 0; i < _selection.Selected.Count; i++)
             {
-                _commands.Patrol(_selection.Selected[i], points);
+                _commands.Patrol(_selection.Selected[i], group.Points, group);
             }
         }
 

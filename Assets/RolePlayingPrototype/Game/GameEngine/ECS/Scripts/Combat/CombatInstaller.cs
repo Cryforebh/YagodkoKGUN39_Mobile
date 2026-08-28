@@ -17,6 +17,7 @@ namespace Game.GameEngine.Ecs
             world.DeclareComponent<HitRequest>();
             world.DeclareComponent<HitDuration>();
             world.DeclareComponent<AttackTarget>();
+            world.DeclareComponent<AttackNavigationData>();
 
             world.DeclareSystem<HitRequestSystem>();
             world.DeclareSystem<HitCountdownSystem>();

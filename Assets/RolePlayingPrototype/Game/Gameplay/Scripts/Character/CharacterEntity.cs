@@ -140,7 +140,9 @@ namespace Entities
 
             if (points.Count > 0)
             {
-                SetData(new PatrolRouteComponent { Points = new List<Vector3>(points) });
+                var group = new PatrolGroupState(points);
+                group.Add(Handle);
+                SetData(new PatrolRouteComponent { Points = new List<Vector3>(points), Group = group });
                 SetData(new CommandRequest { Type = CommandType.PATROL_BY_POINTS, Status = CommandStatus.IDLE, Args = points });
             }
         }
