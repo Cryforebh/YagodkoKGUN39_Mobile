@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &700000000000000002
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 700000000000000003}
+  m_Layer: 0
+  m_Name: Recruit Spawn Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &700000000000000003
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 700000000000000002}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.283, y: 0, z: 0.989}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7038701003123271494}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1632945286595827840
 GameObject:
   m_ObjectHideFlags: 0
@@ -166,6 +197,37 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &2675215887478113600
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5945231871734697594}
+  m_Layer: 0
+  m_Name: Recruit Rally Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5945231871734697594
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2675215887478113600}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.283, y: 0, z: 1.411}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7038701003123271494}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2760202611127454945
 GameObject:
   m_ObjectHideFlags: 0
@@ -593,6 +655,7 @@ GameObject:
   - component: {fileID: 7038701003123271497}
   - component: {fileID: 1478192042795616367}
   - component: {fileID: 4785818909922045628}
+  - component: {fileID: 700000000000000001}
   m_Layer: 0
   m_Name: CommandCenter
   m_TagString: Untagged
@@ -623,6 +686,8 @@ Transform:
   - {fileID: 3639078692194972766}
   - {fileID: 1014995813278581025}
   - {fileID: 1653760580266683151}
+  - {fileID: 700000000000000003}
+  - {fileID: 5945231871734697594}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7038701003123271497
@@ -637,7 +702,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26d5b3d276d4409e847c4f07aa3b4598, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _deliveryRadius: 4.5
+  _deliveryRadius: 5
 --- !u!114 &1478192042795616367
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -673,6 +738,25 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0, z: 0}
   m_TimeToStationary: 0.5
+--- !u!114 &700000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7038701003123271495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46a9aa84fb414dc596b8ddcfa515f2e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _availableUnits:
+  - {fileID: 11400000, guid: ad66b7ee8b9e43f086afc488ad31774a, type: 2}
+  _spawnPoint: {fileID: 700000000000000003}
+  _rallyPoint: {fileID: 5945231871734697594}
+  _unitsParent: {fileID: 0}
+  _navMeshSearchDistance: 3
+  _rallySpacing: 1.2
 --- !u!1 &7038701003659530274
 GameObject:
   m_ObjectHideFlags: 0
@@ -806,7 +890,7 @@ Transform:
   m_GameObject: {fileID: 8256442853065347373}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.003, y: -0.203, z: 0.508}
+  m_LocalPosition: {x: 0.003, y: -0.184, z: 0.508}
   m_LocalScale: {x: 0.5390972, y: 0.62402, z: 0.19423}
   m_ConstrainProportionsScale: 0
   m_Children: []

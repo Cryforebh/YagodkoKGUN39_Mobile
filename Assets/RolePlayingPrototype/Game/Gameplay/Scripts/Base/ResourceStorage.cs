@@ -8,6 +8,8 @@ namespace SampleProject.Base
     public interface IResourceStorage
     {
         IReadOnlyReactiveProperty<int> Get(ResourceType type);
+        bool CanSpend(ResourceType type, int amount);
+        bool TrySpend(ResourceType type, int amount);
     }
 
     public sealed class ResourceStorage : IResourceStorage, IDisposable
@@ -26,6 +28,22 @@ namespace SampleProject.Base
         public IReadOnlyReactiveProperty<int> Get(ResourceType type)
         {
             return _amounts[type];
+        }
+
+        public bool CanSpend(ResourceType type, int amount)
+        {
+            return amount >= 0 && _amounts.TryGetValue(type, out var stored) && stored.Value >= amount;
+        }
+
+        public bool TrySpend(ResourceType type, int amount)
+        {
+            if (!CanSpend(type, amount))
+            {
+                return false;
+            }
+
+            _amounts[type].Value -= amount;
+            return true;
         }
 
         public void Dispose()

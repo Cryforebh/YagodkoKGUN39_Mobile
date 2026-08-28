@@ -27,6 +27,7 @@ namespace SampleProject
         private IGroupCommandService _commands;
         private IPatrolRouteEditor _patrolRouteEditor;
         private IContextCommandResolver _contextCommandResolver;
+        private IRecruitmentService _recruitment;
         private EcsWorld _world;
         private Camera _worldCamera;
         private StrategyCameraController _cameraController;
@@ -36,12 +37,13 @@ namespace SampleProject
         private bool _isDragging;
 
         [Inject]
-        private void Construct(IUnitSelectionService unitSelection, IGroupCommandService groupCommands, IPatrolRouteEditor patrolRouteEditor, IContextCommandResolver contextCommandResolver, EcsWorld ecsWorld)
+        private void Construct(IUnitSelectionService unitSelection, IGroupCommandService groupCommands, IPatrolRouteEditor patrolRouteEditor, IContextCommandResolver contextCommandResolver, IRecruitmentService recruitment, EcsWorld ecsWorld)
         {
             _selection = unitSelection;
             _commands = groupCommands;
             _patrolRouteEditor = patrolRouteEditor;
             _contextCommandResolver = contextCommandResolver;
+            _recruitment = recruitment;
             _world = ecsWorld;
         }
 
@@ -135,6 +137,16 @@ namespace SampleProject
                 return;
             }
 
+            if (_recruitment.IsSettingRallyPoint.Value)
+            {
+                if (Vector2.Distance(_dragStart, pointer) < DragThreshold)
+                {
+                    TrySetRallyPoint();
+                }
+
+                return;
+            }
+
             if (Vector2.Distance(_dragStart, pointer) >= DragThreshold)
             {
                 SelectInRect(GetScreenRect(_dragStart, pointer));
@@ -150,6 +162,16 @@ namespace SampleProject
             {
                 return;
             }
+
+            var recruitmentBuilding = hit.collider == null ? null : hit.collider.GetComponentInParent<RecruitmentBuilding>();
+            if (recruitmentBuilding != null)
+            {
+                _selection.Clear();
+                _recruitment.Select(recruitmentBuilding);
+                return;
+            }
+
+            _recruitment.Close();
 
             var command = _contextCommandResolver.Resolve(hit, groundPoint);
             if (command.Type == ContextCommandType.Gather && _selection.Selected.Count > 0)
@@ -185,6 +207,7 @@ namespace SampleProject
 
         private void SelectInRect(Rect rect)
         {
+            _recruitment.Close();
             if (!_additiveSelection.IsPressed())
             {
                 _selection.Clear();
@@ -210,12 +233,43 @@ namespace SampleProject
 
         private void OnCommandPress(InputAction.CallbackContext context)
         {
-            if (_patrolRouteEditor.IsEditing || _selection.Selected.Count == 0 || !TryGetPointerHit(out var hit, out var groundPoint))
+            if (_patrolRouteEditor.IsEditing || IsPointerOverUi(_pointerPosition.ReadValue<Vector2>()) ||
+                !TryGetPointerHit(out var hit, out var groundPoint))
+            {
+                return;
+            }
+
+            if (_recruitment.SelectedBuilding.Value != null)
+            {
+                TrySetRallyPoint(hit, groundPoint);
+                return;
+            }
+
+            if (_selection.Selected.Count == 0)
             {
                 return;
             }
 
             ExecuteContextCommand(_contextCommandResolver.Resolve(hit, groundPoint));
+        }
+
+        private void TrySetRallyPoint()
+        {
+            if (TryGetPointerHit(out var hit, out var groundPoint))
+            {
+                TrySetRallyPoint(hit, groundPoint);
+            }
+        }
+
+        private void TrySetRallyPoint(RaycastHit hit, Vector3 groundPoint)
+        {
+            if ((hit.collider != null && hit.collider.GetComponentInParent<Entity>() != null) ||
+                !_contextCommandResolver.TryResolveWalkablePosition(hit, groundPoint, out var walkablePosition))
+            {
+                return;
+            }
+
+            _recruitment.TrySetRallyPoint(walkablePosition);
         }
 
         private void TryAddPatrolPoint()

@@ -14,6 +14,7 @@ namespace SampleProject
         public override void InstallBindings()
         {
             Container.Bind<GameplayHudView>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<RecruitmentHudView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<IResourceDepot>().To<CommandCenterEntity>().FromComponentInHierarchy().AsSingle();
             Container.BindInterfacesAndSelfTo<EntityCommandService>().AsSingle();
             Container.BindInterfacesAndSelfTo<NavigationPathService>().AsSingle();
@@ -24,11 +25,14 @@ namespace SampleProject
             Container.BindInterfacesAndSelfTo<UnitCollisionService>().AsSingle();
             Container.BindInterfacesAndSelfTo<GameObjectPool>().AsSingle();
             Container.BindInterfacesAndSelfTo<UnitPoolService>().AsSingle();
+            Container.BindInterfacesAndSelfTo<RecruitmentService>().AsSingle();
             Container.BindInterfacesAndSelfTo<UnitSelectionPresenter>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<PatrolRouteEditor>().AsSingle();
             Container.BindInterfacesAndSelfTo<PatrolHudPresenter>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<ResourceStorage>().AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<ResourceHudPresenter>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<RecruitmentHudPresenter>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<RecruitmentRallyPointPresenter>().AsSingle().NonLazy();
             Container.BindInstance(_unitSpawnSettings).AsSingle();
             Container.BindInterfacesTo<UnitGroupSpawner>().AsSingle().NonLazy();
         }
